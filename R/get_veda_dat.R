@@ -6,7 +6,9 @@
 #
 ####################################################
 #' export
-prep_data <- function(filename_base){
+prep_data <- function(filename_base,
+                      sector_def_method = "strings",
+                      sector_dat = ""){
   vd_file <- paste(filename_base, ".VD", sep = "")
   vde_file <- paste(filename_base, ".VDE", sep = "")
   vds_file <- paste(filename_base, ".VDS", sep = "")
@@ -58,18 +60,20 @@ prep_data <- function(filename_base){
                        dplyr::select(variable, description) %>%
                        dplyr::rename(userconstraint = variable),
               by = "userconstraint") %>%
-    dplyr::rename(userconstraint_description = description ) %>%
+    dplyr::rename(userconstraint_description = description )
+
+
     # append sector information
-    dplyr::mutate(sector = define_sector(process, "code"),
-           sector = dplyr::if_else(sector == "" | is.null(sector),
-                            define_sector(commodity,
-                                          "code"),
-                            sector))
+  if(sector_def_method == "string"){
+    dat <- dat %>%
+      dplyr::mutate(sector = define_sector(process, "code"),
+           sector = dplyr::if_else(
+             sector == "" | is.null(sector),
+             define_sector(commodity,"code"), sector))
+    }
 
-
-  for(o in c("commodity", "process", "userconstraint")){
+    for(o in c("commodity", "process", "userconstraint")){
     dat <- append_sets(dat, sets, o)
-
   }
 
   dat
@@ -257,4 +261,86 @@ append_sets <- function(dat, sets_dat, obj){
   dat %>%
     dplyr::left_join(sets_dat, by = obj) %>%
     dplyr::rename(!!paste(obj, "_set", sep = "") := set)
+}
+
+##########################################
+#' export
+prep_sector_dat <- function(sector_dat){
+  # replace spaces in col names with _
+  names(sector_dat) <- sub(" ", "_", names(sector_dat))
+
+
+  sector_dat %>%
+    #strings to lower
+    dplyr::mutate_if(is.character, stringr::str_to_lower) %>%
+    #column names to lower
+    dplyr::rename_with(tolower)
+
+
+
+
+}
+##################################
+#' define sectors in imported veda data from list
+#'
+#' Append sector information from a tibble to tibble output from
+#' \code{import_vd()} or \code{prep_data()}. The function joins the sector
+#'  information based on a joining variable
+#'
+#' @param dat A tibble of veda data from import_vd or prep_data
+#' @param join_variable_name A string column name in dat for joining to sector_dat
+#' export
+#' @param sector_dat A tibble containing the sector information for variables
+#' @param sector_info_col Column in sector_dat containing sector information
+#' @param sector_dat_variable_col Column in sector_dat for joining to dat
+#' @examples
+#' test_dat <- tibble::tibble(attribute = "var_fout",
+#'              commodity = "adistelc00",
+#'              process = "adistelc00" ,
+#'              period = NA,
+#'              vintage = NA,
+#'              timeslice = "annual",
+#'              region = "reg1",
+#'              userconstraint = "-",
+#'              pv = 10,
+#'              commodity_description = NA,
+#'              process_description = NA,
+#'              usercostraint_description = NA,
+#'              commodity_set = NA,
+#'              process_set = NA,
+#'              usercostraint_set = NA)
+#'
+#'sector_dat <- tibble::tibble(major_sector` = "agr",
+#'                           process = "adistlec00")
+#'
+#' t <- define_sector_from_list(test_dat, "process", sector_dat,
+#'                             major_sector, process)
+#'
+#' export
+define_sector_from_list <- function(dat,
+                                    join_variable_name,
+                                    sector_dat,
+                                    sector_info_column,
+                                    sector_dat_join_variable_col){
+
+  # join_variable_name is a string column name
+
+  sector_info_column <- rlang::enquo(sector_info_column)
+  sector_dat_join_variable_col <- rlang::enquo(sector_dat_join_variable_col)
+  #convert enquoed col to string. enquo introduces ~. remove with sub
+  sector_info_column_name <- sub("~", replacement = "",
+                            deparse(substitute(sector_info_column)))
+
+  # select the sector column data to append
+  sector_dat <- sector_dat %>%
+    dplyr::select(!!sector_info_column, !!sector_dat_join_variable_col) %>%
+    dplyr::rename(!!(join_variable_name) := !!sector_dat_join_variable_col)
+
+  dat <- dat %>%
+    dplyr::left_join(sector_dat, by = join_variable_name) %>%
+    dplyr::rename(!!(paste(join_variable_name,
+                           sector_info_column_name,
+                           sep = "_")) := !!sector_info_column)
+
+  dat
 }
