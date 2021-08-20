@@ -141,9 +141,8 @@ standardise_vd_dat <- function(dat){
   }
   if("period" %in% names(dat)){
     dat <- dat %>%
-      dplyr::mutate(
-        #will introduce NAs by coercion
-        period = as.numeric(as.character(period))
+      dplyr::mutate(period = ifelse(grepl("^[0-9]", period), period, NA),
+                    period = as.numeric(as.character(period))
       )
   }
 
