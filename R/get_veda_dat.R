@@ -7,8 +7,8 @@
 ####################################################
 #' export
 prep_data <- function(filename_base,
-                      sector_def_method = "strings",
-                      sector_dat = ""){
+                      use_sector_def_strings = "T"
+                      ){
   vd_file <- paste(filename_base, ".VD", sep = "")
   vde_file <- paste(filename_base, ".VDE", sep = "")
   vds_file <- paste(filename_base, ".VDS", sep = "")
@@ -64,7 +64,7 @@ prep_data <- function(filename_base,
 
 
     # append sector information
-  if(sector_def_method == "string"){
+  if(use_sector_def_strings == T){
     dat <- dat %>%
       dplyr::mutate(sector = define_sector(process, "code"),
            sector = dplyr::if_else(
