@@ -310,7 +310,7 @@ prep_sector_dat <- function(sector_dat){
 #'              process_set = NA,
 #'              usercostraint_set = NA)
 #'
-#'sector_dat <- tibble::tibble(major_sector` = "agr",
+#'sector_dat <- tibble::tibble(major_sector = "agr",
 #'                           process = "adistlec00")
 #'
 #' t <- define_sector_from_list(test_dat, "process", sector_dat,
