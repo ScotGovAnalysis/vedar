@@ -152,8 +152,8 @@ standardise_vd_dat <- function(dat){
   }
   if("period" %in% names(dat)){
     dat <- dat %>%
-      dplyr::mutate(period_date = as.Date(
-        paste(as.character(period), "/01/01", sep = "")),
+      dplyr::mutate(
+        #will introduce NAs by coercion
         period = as.numeric(as.character(period))
       )
   }
