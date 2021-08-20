@@ -14,7 +14,7 @@ prep_data <- function(filename_base){
 
   dat <- import_vd(vd_file) %>%
     standardise_vd_dat() %>%
-    mutate(timeslice = fix_timeslice(timeslice))
+    dplyr::mutate(timeslice = fix_timeslice(timeslice))
 
   descriptions <- import_vde(vde_file) %>%
     standardise_vd_dat()  %>%
@@ -59,7 +59,7 @@ prep_data <- function(filename_base){
     dplyr::rename(userconstraint_description = description ) %>%
     # append sector information
     dplyr::mutate(sector = define_sector(process, "code"),
-           sector = if_else(sector == "" | is.null(sector),
+           sector = dplyr::if_else(sector == "" | is.null(sector),
                             define_sector(commodity,
                                           "code"),
                             sector))
@@ -81,7 +81,8 @@ prep_data <- function(filename_base){
             process_description),
           "infrastructure",
           "non_infrastructure"))
-}
+  dat
+  }
 
 
 ###################################
@@ -160,7 +161,7 @@ standardise_vd_dat <- function(dat){
   dat  %>%
     # convert all strings to lower numeric
     dplyr::mutate_if(is.factor, as.character) %>%
-    dplyr::mutate_if(is.character, str_to_lower)
+    dplyr::mutate_if(is.character, stringr::str_to_lower)
   # convert null or missing timeslice specification to "annual"
   #  mutate(timeslice = fix_timeslice(timeslice))
 
@@ -260,7 +261,7 @@ append_sets <- function(dat, sets_dat, obj){
 
   sets_dat <- sets_dat %>%
     dplyr::filter(object == obj) %>%
-    dplyr::rename(!!sym(obj) := variable) %>% #sym converts obj string to symbol and unquote with !!
+    dplyr::rename(!!rlang::sym(obj) := variable) %>% #sym converts obj string to symbol and unquote with !!
     dplyr::select(-object)
 
   dat %>%
