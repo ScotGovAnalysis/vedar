@@ -22,7 +22,8 @@ prep_data <- function(filename_base){
     unique() %>%
     dplyr::group_by(variable,  object) %>%
     # in case a variable entry has more than one description
-    dplyr::summarise(description = paste(description))
+    dplyr::summarise(description = paste(description)) %>%
+    dplyr::ungroup()
 
   sets <- import_vds(vds_file) %>%
     standardise_vd_dat() %>%
@@ -33,7 +34,8 @@ prep_data <- function(filename_base){
     #   when sets are joined to dat
     dplyr::select(-region) %>%
     dplyr::group_by(variable,  object) %>%
-    dplyr::summarise(set = list(set))
+    dplyr::summarise(set = list(set))  %>%
+    dplyr::ungroup()
 
 
   #append descriptions
