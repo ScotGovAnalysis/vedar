@@ -1,2 +1,4 @@
 exportPattern("^[[:alpha:]]+")
 importFrom(magrittr,"%>%")
+importFrom(rlang, "!!")
+importFrom(rlang, ":=")

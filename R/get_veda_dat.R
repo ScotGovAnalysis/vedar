@@ -18,11 +18,11 @@ prep_data <- function(filename_base){
 
   descriptions <- import_vde(vde_file) %>%
     standardise_vd_dat()  %>%
-    select(-region) %>%
+    dplyr::select(-region) %>%
     unique() %>%
-    group_by(variable,  object) %>%
+    dplyr::group_by(variable,  object) %>%
     # in case a variable entry has more than one description
-    summarise(description = paste(description))
+    dplyr::summarise(description = paste(description))
 
   sets <- import_vds(vds_file) %>%
     standardise_vd_dat() %>%
@@ -31,34 +31,34 @@ prep_data <- function(filename_base){
     # for each variable.
     #  This is needed to ensure that rows are not repeated
     #   when sets are joined to dat
-    select(-region) %>%
-    group_by(variable,  object) %>%
-    summarise(set = list(set))
+    dplyr::select(-region) %>%
+    dplyr::group_by(variable,  object) %>%
+    dplyr::summarise(set = list(set))
 
 
   #append descriptions
   # to be converted to a function
   dat <- dat %>%
-    left_join(descriptions %>%
-                filter(object == "commodity") %>%
-                select(variable, description) %>%
-                rename(commodity = variable),
+    dplyr::left_join(descriptions %>%
+                       dplyr::filter(object == "commodity") %>%
+                       dplyr::select(variable, description) %>%
+                       dplyr::rename(commodity = variable),
               by = "commodity") %>%
-    rename(commodity_description = description) %>%
-    left_join(descriptions %>%
-                filter(object == "process") %>%
-                select(variable, description) %>%
-                rename(process = variable),
+    dplyr::rename(commodity_description = description) %>%
+    dplyr::left_join(descriptions %>%
+                       dplyr::filter(object == "process") %>%
+                       dplyr::select(variable, description) %>%
+                       dplyr::rename(process = variable),
               by = "process") %>%
-    rename(process_description = description) %>%
-    left_join(descriptions %>%
-                filter(object == "userconstraint") %>%
-                select(variable, description) %>%
-                rename(userconstraint = variable),
+    dplyr::rename(process_description = description) %>%
+    dplyr::left_join(descriptions %>%
+                       dplyr::filter(object == "userconstraint") %>%
+                       dplyr::select(variable, description) %>%
+                       dplyr::rename(userconstraint = variable),
               by = "userconstraint") %>%
-    rename(userconstraint_description = description ) %>%
+    dplyr::rename(userconstraint_description = description ) %>%
     # append sector information
-    mutate(sector = define_sector(process, "code"),
+    dplyr::mutate(sector = define_sector(process, "code"),
            sector = if_else(sector == "" | is.null(sector),
                             define_sector(commodity,
                                           "code"),
@@ -73,9 +73,9 @@ prep_data <- function(filename_base){
 
   dat %>%
     # add indicator for infrastructure/non-infrastructure processes
-    mutate(
+    dplyr::mutate(
       infrastructure =
-        if_else(
+        dplyr::if_else(
           grepl(
             "(infrastructure)|(distribution)|(distn)",
             process_description),
@@ -87,23 +87,23 @@ prep_data <- function(filename_base){
 ###################################
 #' export
 import_vd <- function(file, dat_row_skip = 13, dim_row = 4){
-  dat <- read.table(file,
+  dat <- utils::read.table(file,
                     sep = ",",
                     skip = dat_row_skip,
                     header = F)
 
 
 
-  col_names <- read.table(file,
+  col_names <- utils::read.table(file,
                           skip = dim_row-1,
                           nrow = 1,
                           sep = ";",
                           header = F) %>%
-    separate(as.character("V1"),
+    tidyr::separate(as.character("V1"),
              into = c("drop", "V1"),
              sep = "- ") %>%
-    select(-drop) %>%
-    mutate_all(str_to_lower)
+    dplyr::select(-drop) %>%
+    dplyr::mutate_all(stringr::str_to_lower)
 
   dat <- add_col_names(dat, col_names)
 
@@ -128,14 +128,14 @@ add_col_names <- function(dat, col_names){
 ###################################
 #' export
 import_vde <- function(file){
-  desc <- read.csv(file, header = F, sep = ",")
+  desc <- utils::read.csv(file, header = F, sep = ",")
   names(desc) <- c("object", "region", "variable", "description")
   desc
 }
 ###################################
 #' export
 import_vds <- function(file){
-  set <- read.csv(file, header = F, sep = ",")
+  set <- utils::read.csv(file, header = F, sep = ",")
   names(set) <- c("object", "region", "set", "variable")
 
 
@@ -147,11 +147,11 @@ import_vds <- function(file){
 standardise_vd_dat <- function(dat){
   if("vintage" %in% names(dat)){
     # dat <- dat %>%
-    #   select(-vintage)
+    #   dplyr::select(-vintage)
   }
   if("period" %in% names(dat)){
     dat <- dat %>%
-      mutate(period_date = as.Date(
+      dplyr::mutate(period_date = as.Date(
         paste(as.character(period), "/01/01", sep = "")),
         period = as.numeric(as.character(period))
       )
@@ -159,8 +159,8 @@ standardise_vd_dat <- function(dat){
 
   dat  %>%
     # convert all strings to lower numeric
-    mutate_if(is.factor, as.character) %>%
-    mutate_if(is.character, str_to_lower)
+    dplyr::mutate_if(is.factor, as.character) %>%
+    dplyr::mutate_if(is.character, str_to_lower)
   # convert null or missing timeslice specification to "annual"
   #  mutate(timeslice = fix_timeslice(timeslice))
 
@@ -181,7 +181,7 @@ fix_timeslice <- function(timeslice){
 ###################################
 define_sector <- function(variable, sector_def_var){
   if(sector_def_var == "code"){
-    sector <- case_when(
+    sector <- dplyr::case_when(
       grepl("^([Aa](?!(ct)))[A-Za-z0-9]|(ghg-agr)",
             variable,
             perl = T) ~ "agriculture",
@@ -255,15 +255,15 @@ append_sets <- function(dat, sets_dat, obj){
   #sets_dat is a long df which includes data for commodity, process, userconstraint.
   #The sets for each will be added as a column to dat
 
-  obj_col <- enquo(obj)
+  obj_col <- rlang::enquo(obj)
   # obj_nm <- as_name(obj)
 
   sets_dat <- sets_dat %>%
-    filter(object == obj) %>%
-    rename(!!sym(obj) := variable) %>% #sym converts obj string to symbol and unquote with !!
-    select(-object)
+    dplyr::filter(object == obj) %>%
+    dplyr::rename(!!sym(obj) := variable) %>% #sym converts obj string to symbol and unquote with !!
+    dplyr::select(-object)
 
   dat %>%
-    left_join(sets_dat, by = obj) %>%
-    rename(!!paste(obj, "_set", sep = "") := set)
+    dplyr::left_join(sets_dat, by = obj) %>%
+    dplyr::rename(!!paste(obj, "_set", sep = "") := set)
 }
