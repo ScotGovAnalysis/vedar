@@ -70,17 +70,6 @@ prep_data <- function(filename_base){
 
   }
 
-
-  dat %>%
-    # add indicator for infrastructure/non-infrastructure processes
-    dplyr::mutate(
-      infrastructure =
-        dplyr::if_else(
-          grepl(
-            "(infrastructure)|(distribution)|(distn)",
-            process_description),
-          "infrastructure",
-          "non_infrastructure"))
   dat
   }
 
