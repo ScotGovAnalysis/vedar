@@ -7,7 +7,7 @@ A collection of functions to enable the import and analysis of the outputs of Ve
 Install vedar from GitHub with:
 
     # install.packages("devtools")
-    devtools::install_github("datasciencescotland/vedar")
+    devtools::install_github("datasciencescotland/vedar", build_vignettes = T)
 
 If the above does not work, you can install from source:
 
