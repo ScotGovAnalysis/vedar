@@ -1,0 +1,5 @@
+﻿Scenario,UserName,ModelName,Studyname,Attribute,Commodity,Period,Region,Timeslice,Pv
+DemoS_001,,DemoS_001,pilot_runs,EQ_CombalM,Demand Total Primary Supply - COA,2006,REG1,ANNUAL,2.75
+DemoS_001,,DemoS_001,pilot_runs,EQ_CombalM,Demand Total Primary Supply - COA,2005,REG1,ANNUAL,5.709000587
+DemoS_001,,DemoS_001,pilot_runs,EQ_CombalM,Solid Fuels,2006,REG1,ANNUAL,2.75
+DemoS_001,,DemoS_001,pilot_runs,EQ_CombalM,Solid Fuels,2005,REG1,ANNUAL,2.75

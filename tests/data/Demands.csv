@@ -1,0 +1,3 @@
+﻿Scenario,UserName,ModelName,Studyname,Attribute,Commodity,Process,Period,Region,Vintage,Timeslice,Pv,Commodityset
+DemoS_001,,DemoS_001,pilot_runs,VAR_FOut,TPSCOA,DTPSCOA,2006,REG1,2006,ANNUAL,13413.96,DEM
+DemoS_001,,DemoS_001,pilot_runs,VAR_FOut,TPSCOA,DTPSCOA,2005,REG1,2005,ANNUAL,13413.96,DEM
