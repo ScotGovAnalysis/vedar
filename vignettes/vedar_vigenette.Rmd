@@ -14,37 +14,37 @@ knitr::opts_chunk$set(
 )
 ```
 
-```{r setup}
+```{r setup, echo = F}
 library(vedar)
+library(dplyr)
+library(purrr)
 ```
 
 # Introduction
 
+Veda is a graphical user interface for running TIMES models. Veda compiles model information specified in spreadsheets and passes the resulting data to GAMS and CPLEX for solving. The solution data is stored in custom veda text files. 
+
+The Veda graphical user interface provides a means of interrogating the Veda solution output data. The vedar library offers an alternative and enables veda outputs to be imported and analysed in R.
 
 # Getting veda data into R
+
 The vignette uses the data that is created from processing the demos_001 model that is run in Veda2.0. 
 
-The vedar package has four functions used to load Veda model run output data into R.
-
-The functions `import_vd()`, `import_vds()` and `import_vde()` files bring the veda run output data, the set information and the object descriptions respectively into the the workspace. In the example 
-
-```{r, warning = F, echo=T, eval = F}
+```{r, warning = F}
 
 filename_base <- "DemoS_001"
 
 vd_filename <- paste(filename_base, ".vd", sep = "")
 vds_filename <- paste(filename_base, ".vds", sep = "")
 vde_filename <- paste(filename_base, ".vde", sep = "")
-
-demos_vd <- import_vd(vd_filename)
-
-demos_vde <- import_vd(vds_filename)
-
-demos_vds <- import_vd(vde_filename)
-
 ```
 
-```{r, warning = F, echo=F}
+
+The vedar package has four functions used to load Veda model run output data into R.
+
+The functions `import_vd(vd_filename)`, `import_vds(vds_filename)` and `import_vde(vde_filename)` files bring the veda run output data, the set information and the object descriptions respectively into the the workspace. In the code below, the `system_file()` is needed in the function arguments to access the vignette data, but this is not required when running in a regular project.
+
+```{r, warning = F}
 
 filename_base <- "DemoS_001"
 
@@ -56,29 +56,98 @@ demos_vd <- import_vd(system.file("extdata",
                                   vd_filename,
                                   package = "vedar"))
 
-demos_vde <- import_vd(system.file("extdata", 
+demos_vde <- import_vde(system.file("extdata", 
                                   vde_filename,
                                   package = "vedar"))
 
-demos_vds <- import_vd(system.file("extdata", 
+demos_vds <- import_vds(system.file("extdata", 
                                   vds_filename,
                                   package = "vedar"))
 
 ```
 
-Alternatively, the three files can be imported and joined using `prep_data()`
+Alternatively, the three files can be imported and joined using `prep_data(filename_base)`. The `vignette = T` argument is used in the vignette, but is not needed in a project.
 
-```{r, warning = F, eval = F}
-demos_001 <- prep_data(filename_base = filename_base)
-
-
-
-```
-
-
-```{r, warning = F, eval = T, echo = F}
-demos_001 <- prep_data_for_vignette(filename_base = filename_base)
+```{r, warning = F}
+demos_001 <- prep_data(filename_base = filename_base, vignette = T)
 
 
 
 ```
+
+Processes and commodities are likely to be assigned to particular grouping variables (e.g. sectors). A list of sector, or other grouping information can be associated to the data using `define_sector_from_list()`. As each row of the data has either or both commodity and process information, the sector is assigned by separate function calls on commodity and process data. 
+
+Note that the joining variable can have different names in the veda output data, and the  sector information data. The former information is passed as a character (`join_variable_name`) and the latter as a column name (`sector_dat_join_variable_col`). The name of the grouping information is passed as a column (`sector_info_column`). 
+
+The functionality of this will be improved in future iterations.
+
+
+```{r, warning = F}
+sectors_commodity_file <- "sectors_commodity.csv"
+
+sectors_process_file <- "sectors_process.csv"
+sectors_commodity <- system.file("extdata", 
+                                  sectors_commodity_file,
+                                  package = "vedar") %>%
+  read.csv()
+sectors_process <- system.file("extdata", 
+                                  sectors_process_file,
+                                  package = "vedar") %>%
+  read.csv()
+
+demos_001 <- demos_001 %>%
+  #assign the sector to the commodity
+  define_sector_from_list(join_variable_name = "commodity", 
+                          sector_dat = sectors_commodity, 
+                          sector_info_column = sector, 
+                          sector_dat_join_variable_col = commodity) %>%
+  #assign the sector to the process
+  define_sector_from_list(join_variable_name = "process", 
+                          sector_dat = sectors_process, 
+                          sector_info_column = sector, 
+                          sector_dat_join_variable_col = process) %>%
+  # here, assign a sector based on the process sector if available,
+  # else, use the commodity information
+  mutate(sector = if_else(is.na(process_sector), 
+                          commodity_sector, 
+                          process_sector), 
+         #create a variable to check that commodity sector and process
+         # sector information match
+         sector_match = if_else((is.na(process_sector) |
+                                   is.na(commodity_sector) |
+                                   process_sector == commodity_sector), 
+                                T, F))
+print(paste("Check if sector information matches between process and commodity: ", 
+            sum(demos_001$sector_match) == nrow(demos_001), sep = ""))
+```
+We can compare results produced by vedar to those produced from tables generated by the Veda graphical-user interface
+```{r}
+
+# load results tables that were generated by Veda DemoS_001 example
+data("demos_001_results")
+
+flatten_dfr(demos_001_results["All costs.csv"]) %>%
+  select(Attribute, 
+         Commodity, 
+         Process, 
+         Period, 
+         Pv) %>%
+  arrange(Attribute, Process, Period) %>%
+  knitr::kable()
+
+
+demos_001 %>% 
+  #select rows in which attribute contains the string "cost_" 
+  # and sector == "coal"
+  filter(grepl("cost_", attribute), 
+         sector == "coal") %>%
+  select(attribute, 
+         commodity, 
+         process, 
+         period, 
+         pv) %>%
+  arrange(attribute, process, period)  %>%
+  knitr::kable()
+```
+
+

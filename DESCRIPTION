@@ -19,7 +19,8 @@ Imports:
     stringr,
     tibble,
     tidyr,
-    utils
+    utils, 
+    purrr
 RoxygenNote: 7.1.1
 Suggests: 
     rmarkdown,
