@@ -1,0 +1,84 @@
+---
+title: "Vedar Vigenette"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Vedar Vigenette}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(vedar)
+```
+
+# Introduction
+
+
+# Getting veda data into R
+The vignette uses the data that is created from processing the demos_001 model that is run in Veda2.0. 
+
+The vedar package has four functions used to load Veda model run output data into R.
+
+The functions `import_vd()`, `import_vds()` and `import_vde()` files bring the veda run output data, the set information and the object descriptions respectively into the the workspace. In the example 
+
+```{r, warning = F, echo=T, eval = F}
+
+filename_base <- "DemoS_001"
+
+vd_filename <- paste(filename_base, ".vd", sep = "")
+vds_filename <- paste(filename_base, ".vds", sep = "")
+vde_filename <- paste(filename_base, ".vde", sep = "")
+
+demos_vd <- import_vd(vd_filename)
+
+demos_vde <- import_vd(vds_filename)
+
+demos_vds <- import_vd(vde_filename)
+
+```
+
+```{r, warning = F, echo=F}
+
+filename_base <- "DemoS_001"
+
+vd_filename <- paste(filename_base, ".vd", sep = "")
+vds_filename <- paste(filename_base, ".vds", sep = "")
+vde_filename <- paste(filename_base, ".vde", sep = "")
+
+demos_vd <- import_vd(system.file("extdata", 
+                                  vd_filename,
+                                  package = "vedar"))
+
+demos_vde <- import_vd(system.file("extdata", 
+                                  vde_filename,
+                                  package = "vedar"))
+
+demos_vds <- import_vd(system.file("extdata", 
+                                  vds_filename,
+                                  package = "vedar"))
+
+```
+
+Alternatively, the three files can be imported and joined using `prep_data()`
+
+```{r, warning = F, eval = F}
+demos_001 <- prep_data(filename_base = filename_base)
+
+
+
+```
+
+
+```{r, warning = F, eval = T, echo = F}
+demos_001 <- prep_data_for_vignette(filename_base = filename_base)
+
+
+
+```

@@ -78,6 +78,86 @@ prep_data <- function(filename_base,
 
   dat
   }
+###################################
+#' export
+prep_data_for_vignette <- function(filename_base,
+                      use_sector_def_strings = "T"
+){
+  vd_file <- paste(filename_base, ".VD", sep = "")
+  vde_file <- paste(filename_base, ".VDE", sep = "")
+  vds_file <- paste(filename_base, ".VDS", sep = "")
+
+
+  dat <- import_vd(system.file("extdata",
+                                vd_filename,
+                                package = "vedar")) %>%
+    standardise_vd_dat() %>%
+    dplyr::mutate(timeslice = fix_timeslice(timeslice))
+
+  descriptions <- import_vde(system.file("extdata",
+                                        vde_filename,
+                                        package = "vedar")) %>%
+    standardise_vd_dat()  %>%
+    dplyr::select(-region) %>%
+    unique() %>%
+    dplyr::group_by(variable,  object) %>%
+    # in case a variable entry has more than one description
+    dplyr::summarise(description = paste(description)) %>%
+    dplyr::ungroup()
+
+  sets <- import_vds(system.file("extdata",
+                                 vds_filename,
+                                 package = "vedar")) %>%
+    standardise_vd_dat() %>%
+    # a single variable may be a member of more than one set.
+    # Reduce dimension of sets by creating a set of sets
+    # for each variable.
+    #  This is needed to ensure that rows are not repeated
+    #   when sets are joined to dat
+    dplyr::select(-region) %>%
+    dplyr::group_by(variable,  object) %>%
+    dplyr::summarise(set = list(set))  %>%
+    dplyr::ungroup()
+
+
+  #append descriptions
+  # to be converted to a function
+  dat <- dat %>%
+    dplyr::left_join(descriptions %>%
+                       dplyr::filter(object == "commodity") %>%
+                       dplyr::select(variable, description) %>%
+                       dplyr::rename(commodity = variable),
+                     by = "commodity") %>%
+    dplyr::rename(commodity_description = description) %>%
+    dplyr::left_join(descriptions %>%
+                       dplyr::filter(object == "process") %>%
+                       dplyr::select(variable, description) %>%
+                       dplyr::rename(process = variable),
+                     by = "process") %>%
+    dplyr::rename(process_description = description) %>%
+    dplyr::left_join(descriptions %>%
+                       dplyr::filter(object == "userconstraint") %>%
+                       dplyr::select(variable, description) %>%
+                       dplyr::rename(userconstraint = variable),
+                     by = "userconstraint") %>%
+    dplyr::rename(userconstraint_description = description )
+
+
+  # append sector information
+  if(use_sector_def_strings == T){
+    dat <- dat %>%
+      dplyr::mutate(sector = define_sector(process, "code"),
+                    sector = dplyr::if_else(
+                      sector == "" | is.null(sector),
+                      define_sector(commodity,"code"), sector))
+  }
+
+  for(o in c("commodity", "process", "userconstraint")){
+    dat <- append_sets(dat, sets, o)
+  }
+
+  dat
+}
 
 
 ###################################
