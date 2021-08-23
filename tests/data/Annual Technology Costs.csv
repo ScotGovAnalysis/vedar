@@ -1,0 +1,5 @@
+﻿Scenario,UserName,ModelName,Studyname,Attribute,Process,Period,Region,Vintage,Userconstraint,Pv
+DemoS_001,,DemoS_001,pilot_runs,Cost_Fom,DTPSCOA,2006,REG1,2005,-,2823.991579
+DemoS_001,,DemoS_001,pilot_runs,Cost_Fom,DTPSCOA,2005,REG1,2005,-,2823.991579
+DemoS_001,,DemoS_001,pilot_runs,Cost_Inv,DTPSCOA,2006,REG1,2005,INV,11057.16206
+DemoS_001,,DemoS_001,pilot_runs,Cost_Inv,DTPSCOA,2005,REG1,2005,INV,11057.16206

@@ -1,0 +1,3 @@
+﻿Scenario,UserName,ModelName,Studyname,Attribute,Commodity,Period,Region,Timeslice,Pv,Commodityset
+DemoS_001,,DemoS_001,pilot_runs,EQ_CombalM,COA,2006,REG1,ANNUAL,2.75,NRG
+DemoS_001,,DemoS_001,pilot_runs,EQ_CombalM,COA,2005,REG1,ANNUAL,2.75,NRG

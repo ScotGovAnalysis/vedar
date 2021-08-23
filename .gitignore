@@ -3,3 +3,6 @@
 .RData
 .Ruserdata
 scratchpad
+inst/doc
+/doc/
+/Meta/

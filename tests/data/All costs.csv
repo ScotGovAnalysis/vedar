@@ -1,0 +1,14 @@
+﻿Scenario,UserName,ModelName,Studyname,Attribute,Commodity,Process,Period,Region,Vintage,Userconstraint,Pv
+DemoS_001,,DemoS_001,pilot_runs,Cost_Flo [Annual flow costs (including import/export prices)],COA,MINCOA2,2006,REG1,2006,-,5061.47375
+DemoS_001,,DemoS_001,pilot_runs,Cost_Flo [Annual flow costs (including import/export prices)],COA,MINCOA1,2006,REG1,2006,-,12147.537
+DemoS_001,,DemoS_001,pilot_runs,Cost_Flo [Annual flow costs (including import/export prices)],COA,IMPCOA1,2006,REG1,2006,-,17772.34525
+DemoS_001,,DemoS_001,pilot_runs,Cost_Flo [Annual flow costs (including import/export prices)],COA,EXPCOA1,2006,REG1,2006,-,-3154.43975
+DemoS_001,,DemoS_001,pilot_runs,Cost_Flo [Annual flow costs (including import/export prices)],COA,MINCOA2,2005,REG1,2005,-,5061.47375
+DemoS_001,,DemoS_001,pilot_runs,Cost_Flo [Annual flow costs (including import/export prices)],COA,MINCOA1,2005,REG1,2005,-,12147.537
+DemoS_001,,DemoS_001,pilot_runs,Cost_Flo [Annual flow costs (including import/export prices)],COA,IMPCOA1,2005,REG1,2005,-,17772.34525
+DemoS_001,,DemoS_001,pilot_runs,Cost_Flo [Annual flow costs (including import/export prices)],COA,EXPCOA1,2005,REG1,2005,-,-3154.43975
+DemoS_001,,DemoS_001,pilot_runs,Cost_Fom [Annual fixed operating and maintenance costs],-,DTPSCOA,2006,REG1,2005,-,2823.991579
+DemoS_001,,DemoS_001,pilot_runs,Cost_Fom [Annual fixed operating and maintenance costs],-,DTPSCOA,2005,REG1,2005,-,2823.991579
+DemoS_001,,DemoS_001,pilot_runs,Cost_Salv [Salvage values of capacities at EOH+1],-,DTPSCOA,-,REG1,2005,-,113069.5488
+DemoS_001,,DemoS_001,pilot_runs,Cost_Inv [Annual investment costs],-,DTPSCOA,2006,REG1,2005,INV,11057.16206
+DemoS_001,,DemoS_001,pilot_runs,Cost_Inv [Annual investment costs],-,DTPSCOA,2005,REG1,2005,INV,11057.16206

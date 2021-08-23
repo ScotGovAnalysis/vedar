@@ -7,16 +7,18 @@
 ####################################################
 #' export
 prep_data <- function(filename_base,
-                      use_sector_def_strings = "T"
+                      use_sector_def_strings = F,
+                      vignette = F
                       ){
   vd_file <- paste(filename_base, ".VD", sep = "")
   vde_file <- paste(filename_base, ".VDE", sep = "")
   vds_file <- paste(filename_base, ".VDS", sep = "")
 
+  if(vignette == F){
+    dat <- import_vd(vd_file) %>%
+      standardise_vd_dat() %>%
+      dplyr::mutate(timeslice = fix_timeslice(timeslice))
 
-  dat <- import_vd(vd_file) %>%
-    standardise_vd_dat() %>%
-    dplyr::mutate(timeslice = fix_timeslice(timeslice))
 
   descriptions <- import_vde(vde_file) %>%
     standardise_vd_dat()  %>%
@@ -38,6 +40,47 @@ prep_data <- function(filename_base,
     dplyr::group_by(variable,  object) %>%
     dplyr::summarise(set = list(set))  %>%
     dplyr::ungroup()
+  }
+  else{
+    vd_file <- paste(filename_base, ".VD", sep = "")
+    vde_file <- paste(filename_base, ".VDE", sep = "")
+    vds_file <- paste(filename_base, ".VDS", sep = "")
+
+
+    dat <- import_vd(system.file("extdata",
+                                 vd_filename,
+                                 package = "vedar")) %>%
+      standardise_vd_dat() %>%
+      dplyr::mutate(timeslice = fix_timeslice(timeslice))
+
+    descriptions <- import_vde(system.file("extdata",
+                                           vde_filename,
+                                           package = "vedar")) %>%
+      standardise_vd_dat()  %>%
+      dplyr::select(-region) %>%
+      unique() %>%
+      dplyr::group_by(variable,  object) %>%
+      # in case a variable entry has more than one description
+      dplyr::summarise(description = paste(description)) %>%
+      dplyr::ungroup()
+
+    sets <- import_vds(system.file("extdata",
+                                   vds_filename,
+                                   package = "vedar")) %>%
+      standardise_vd_dat() %>%
+      # a single variable may be a member of more than one set.
+      # Reduce dimension of sets by creating a set of sets
+      # for each variable.
+      #  This is needed to ensure that rows are not repeated
+      #   when sets are joined to dat
+      dplyr::select(-region) %>%
+      dplyr::group_by(variable,  object) %>%
+      dplyr::summarise(set = list(set))  %>%
+      dplyr::ungroup()
+
+
+
+  }
 
 
   #append descriptions
