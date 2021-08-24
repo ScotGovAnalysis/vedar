@@ -106,14 +106,7 @@ prep_data <- function(filename_base,
     dplyr::rename(userconstraint_description = description )
 
 
-    # append sector information
-  if(use_sector_def_strings == T){
-    dat <- dat %>%
-      dplyr::mutate(sector = define_sector(process, "code"),
-           sector = dplyr::if_else(
-             sector == "" | is.null(sector),
-             define_sector(commodity,"code"), sector))
-    }
+
 
     for(o in c("commodity", "process", "userconstraint")){
     dat <- append_sets(dat, sets, o)
@@ -217,7 +210,7 @@ fix_timeslice <- function(timeslice){
   timeslice_fixed
 }
 ###################################
-define_sector <- function(variable, sector_def_var){
+define_sector_from_string_subfunctio <- function(variable, sector_def_var){
   if(sector_def_var == "code"){
     sector <- dplyr::case_when(
       grepl("^([Aa](?!(ct)))[A-Za-z0-9]|(ghg-agr)",
@@ -324,7 +317,7 @@ prep_sector_dat <- function(sector_dat){
 
 }
 ##################################
-#' define sectors in imported veda data from list
+#' Define sectors in imported veda data from list
 #'
 #' Append sector information from a tibble to tibble output from
 #' \code{import_vd()} or \code{prep_data()}. The function joins the sector
@@ -386,4 +379,29 @@ define_sector_from_list <- function(dat,
                            sep = "_")) := !!sector_info_column)
 
   dat
+}
+
+
+#################
+#' Define sectors based on string matches
+#'
+#' Use specified regular expressions for sector definitions based on naming
+#' conventions used for Scottish Times Model
+#'
+#' @param dat A tibble of veda data from import_vd or prep_data
+#'
+#' @example
+#' data(demos_001)
+#' demos_001 %>%
+#'     define_sector_from_string
+#'
+#'export
+define_sector_from_string <- function(dat){
+
+    dat %>%
+      dplyr::mutate(sector = define_sector_from_string_subfunction(process,
+                                                                   "code"),
+                    sector = dplyr::if_else(
+                      sector == "" | is.null(sector),
+                      define_sector(commodity,"code"), sector))
 }
