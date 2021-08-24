@@ -184,7 +184,9 @@ standardise_vd_dat <- function(dat){
   if("period" %in% names(dat)){
     dat <- dat %>%
       dplyr::mutate(period = ifelse(grepl("^[0-9]", period), period, NA),
-                    period = as.numeric(as.character(period))
+                    period = as.numeric(as.character(period)),
+                    vintage = ifelse(grepl("^[0-9]", vintage), vintage, NA),
+                    vintage = as.numeric(as.character(vintage))
       )
   }
 
@@ -192,8 +194,7 @@ standardise_vd_dat <- function(dat){
     # convert all strings to lower numeric
     dplyr::mutate_if(is.factor, as.character) %>%
     dplyr::mutate_if(is.character, stringr::str_to_lower)
-  # convert null or missing timeslice specification to "annual"
-  #  mutate(timeslice = fix_timeslice(timeslice))
+
 
 }
 
