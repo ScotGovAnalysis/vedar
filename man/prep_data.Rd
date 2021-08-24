@@ -4,7 +4,7 @@
 \alias{prep_data}
 \title{export}
 \usage{
-prep_data(filename_base, sector_def_method = "strings", sector_dat = "")
+prep_data(filename_base, use_sector_def_strings = F, vignette = F)
 }
 \description{
 export

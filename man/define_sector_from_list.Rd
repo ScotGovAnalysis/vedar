@@ -2,7 +2,7 @@
 % Please edit documentation in R/get_veda_dat.R
 \name{define_sector_from_list}
 \alias{define_sector_from_list}
-\title{define sectors in imported veda data from list}
+\title{Define sectors in imported veda data from list}
 \usage{
 define_sector_from_list(
   dat,
