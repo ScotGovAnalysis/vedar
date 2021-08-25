@@ -7,7 +7,6 @@
 ####################################################
 #' export
 prep_data <- function(filename_base,
-                      use_sector_def_strings = F,
                       vignette = F
                       ){
   vd_file <- paste(filename_base, ".VD", sep = "")
