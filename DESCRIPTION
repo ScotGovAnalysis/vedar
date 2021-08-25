@@ -20,7 +20,9 @@ Imports:
     tibble,
     tidyr,
     utils, 
-    purrr
+    purrr, 
+    plotly, 
+    networkD3
 RoxygenNote: 7.1.1
 Suggests: 
     rmarkdown,
