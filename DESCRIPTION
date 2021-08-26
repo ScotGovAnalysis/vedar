@@ -18,8 +18,8 @@ Imports:
     tidyr,
     utils, 
     purrr, 
-    plotly, 
-    networkD3
+    networkD3,
+    htmlwidgets
 RoxygenNote: 7.1.1
 Suggests: 
     rmarkdown,
