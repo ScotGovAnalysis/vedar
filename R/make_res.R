@@ -88,37 +88,53 @@ out <- dat %>%
 }
 
 ###########################
-make_plotly_sankey <- function(nodes, edges){
-  fig <- plotly::plot_ly(
-    type = "sankey",
-    orientation = "h",
+make_sankey <- function(nodes, edges, source, target, value,
+                        node_label = process_description,
+                        edge_label = NULL, font_size = 12){
+  source <- enquo(source)
+  target <- enquo(target)
+  value <- enquo(value)
+  node_label <- enquo(node_label)
+  edge_label <- enquo(edge_label)
 
+  if(min(c(pull(edges, !!source), pull(edges, !!target)) != 0)){
+    stop("node numbers must be zero indexed")
+  }
+  if((is.numeric(pull(edges, !!source)) &
+      is.numeric(pull(edges, !!target))) == F){
+    stop("edge source and target must be numeric")
+  }
 
-    node = list(
-      label = nodes$process,
-      pad = 15,
-      thickness = 20,
-      line = list(
-        color = "black",
-        width = 0.5
+  sn <- networkD3::sankeyNetwork(Links = edges,
+                                 Nodes = nodes,
+                                 # arguments to sankeyNetwork strings
+                                 Source = rlang::as_string(rlang::ensym(source)),
+                                 Target = rlang::as_string(rlang::ensym(target)),
+                                 Value = rlang::as_string(rlang::ensym(value)),
+                                 NodeID = rlang::as_string(rlang::ensym(node_label)),
+                                 fontSize = font_size
+  )
+
+  # Add Custom tooltips
+  # https://stackoverflow.com/questions/45635970/displaying-edge-information-in-sankey-tooltip/45918897#45918897
+  if(is.null(edge_label) == F){
+  # add the names back into the links data because sankeyNetwork strips it out
+      sn$x$links$name <-  pull(edges, !!edge_label)
+
+      # add onRender JavaScript to set the title to the value of 'name' for each link
+      sn <- htmlwidgets::onRender(
+        sn,
+        '
+      function(el, x) {
+      d3.selectAll(".link").select("title foreignObject body pre")
+      .text(function(d) { return d.name; });
+      }
+      '
       )
-    ),
+  }
 
-    link = list(
-      source = as.numeric(edges$source),
-      target = as.numeric(edges$target),
-      value = rep(2, nrow(edges))
-    )
-  )
-
-  fig <- fig %>%
-    plotly::layout(
-    title = "Basic Sankey Diagram",
-    font = list(
-      size = 10
-    )
-  )
-  fig
+  # display the result
+  sn
 }
 
 #######
