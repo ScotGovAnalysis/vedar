@@ -53,16 +53,26 @@ make_edges <- function(dat, node_col, flow_col){
   node_col <- enquo(node_col)
   flow_col <- enquo(flow_col)
 
-  dat %>%
+  node_col_numeric <- is.numeric((dat %>% select(!!node_col))[,1])
+
+out <- dat %>%
     dplyr::select(!!flow_col, !!node_col, attribute) %>%
     tidyr::pivot_wider(values_from = !!node_col,
                        names_from = attribute,
-                       values_fn = list) %>%
-    tidyr::replace_na(list(var_fin = list(c(0)),
+                       values_fn = list)
+  if(node_col_numeric == TRUE){
+      out <- out %>%
+        tidyr::replace_na(list(var_fin = list(c(0)),
                            var_fout = list(c(0)))
-    )%>%
+        )}else{
+          out <- out %>%
+            tidyr::replace_na(list(var_fin = list(c("0")),
+                                   var_fout = list(c("0")))
+            )
+        }
+  out <- out %>%
     dplyr::group_by(!!flow_col) %>%
-    summarise(edges =map(.x = var_fout,
+    summarise(edges = map(.x = var_fout,
                          .y = var_fin,
                          ~expand.grid(source =unlist(.x),
                                       target = unlist(.y)))
