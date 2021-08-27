@@ -1,5 +1,17 @@
 #' export
-make_res <- function(dat, period_select = NULL, sector_select = NULL){
+make_res <- function(dat, period_select = NULL, sector_select = NULL,
+                     font_size){
+
+  if(length(period_select) > 1){
+    stop("RES plotted for single period. Specify single period")
+  }
+  if(period_select %in% dat$period == F){
+    stop("period_select not in period of data")
+  }
+  if(sector_select %in% dat$sector == F){
+    stop("sector_select not in sector of data")
+  }
+  # RES data are rows with attributes var_fin|var_fout
   dat <- dat %>%
     filter(attribute == "var_fin" | attribute == "var_fout",
            period == period_select,
@@ -9,33 +21,96 @@ make_res <- function(dat, period_select = NULL, sector_select = NULL){
            pv) %>%
     unique()
 
+  # demand commodities do not have end process.
+  # To show on RES, an extra node must be added.
+  # Named by commodity
+  dat <- dat %>%
+    add_missing_nodes("var_fout")
+
+
   nodes <- make_nodes(dat, process) %>%
     # append node description
     left_join(dat %>%
                 select(process, process_description) %>%
                 unique()
                 )
-
+  # networkD3 in make_sankey uses zero indexed node numbers. Assign node_num
+  # to dat
   dat <- assign_node_num(dat, nodes)
 
+
+  # convert the long var_fin,var_fout data to wide (source-target) edge data
   edges <- make_edges(dat %>%
                         dplyr::select(node_num, commodity, attribute),
                      node_col = node_num,
                      flow_col = commodity) %>%
+    #assign the commodity description of the var_fout commodity to each edge
     left_join(dat %>%
                 filter(attribute == "var_fout") %>%
                 select(commodity, commodity_description) %>%
                 unique()
+    ) %>%
+    # at present, the RES only plots connecitions. All values = 1
+    mutate(value = 1)
+
+  sn <- make_sankey(nodes, edges,
+                    source = "source",
+                    target = "target",
+                    value = "value",
+                    node_label = "process_description",
+                    edge_label = "commodity",
+                    font_size = font_size)
+
+  sn
+}
+
+################################
+add_missing_nodes <- function(dat, flow_direction = "var_fout"){
+  dat %>%
+    dplyr::group_by(commodity) %>%
+    tidyr::nest() %>%
+    dplyr::mutate(data = map(.x = data,
+                             ~add_missing_nodes_subfunction(dat = .x,
+                                            direction = flow_direction,
+                                            commodity = commodity))) %>%
+    tidyr::unnest(cols= c(data)) %>%
+    ungroup()
+
+}
+
+################################
+add_missing_nodes_subfunction <- function(dat, direction, commodity){
+  directions <- c("var_fin", "var_fout")
+  if(direction == "var_fout"){
+    process_suffix <- "_end_process"
+  }else{
+    process_suffix <- "_start_process"
+  }
+  direction_to_check <- directions[which(directions != direction)]
+  if(direction %in% (pull(dat, attribute)) &
+     (direction_to_check %in% pull(dat, attribute)) == F){
+    row_to_add <- tibble(attribute = direction_to_check,
+                         process = paste(commodity, process_suffix, sep = ""),
+                         process_description = paste(commodity,
+                                                     process_suffix, sep = ""),
+                         pv = sum(dat$pv),
+                         commodity_description = paste(commodity,
+                                                       "_demand", sep = "")
     )
+    row_to_add
+    dat %>%
+      bind_rows(row_to_add)
+  }else{
+    dat
+  }
 }
 
 ################################
 make_nodes <- function(dat, node_column){
   node_column <- rlang::enquo(node_column)
-  nodes <- tibble::tibble(!!node_column := unique(dat %>%
-                                           select({{node_column}}))[, 1]
-                          ) %>%
-    mutate(node_num = row_number())
+  nodes <- tibble::tibble({{node_column}} :=
+                            unique(pull(dat, !!node_column))) %>%
+    mutate(node_num = row_number() - 1)
 
   nodes
 }
@@ -53,38 +128,20 @@ make_edges <- function(dat, node_col, flow_col){
   node_col <- enquo(node_col)
   flow_col <- enquo(flow_col)
 
-  node_col_numeric <- is.numeric((dat %>% select(!!node_col))[,1])
+  node_col_numeric <- is.numeric(pull(dat, !!node_col))
 
 out <- dat %>%
     dplyr::select(!!flow_col, !!node_col, attribute) %>%
     tidyr::pivot_wider(values_from = !!node_col,
                        names_from = attribute,
-                       values_fn = list)
-  if(node_col_numeric == TRUE){
-      out <- out %>%
-        tidyr::replace_na(list(var_fin = list(c(0)),
-                           var_fout = list(c(0)))
-        )}else{
-          out <- out %>%
-            tidyr::replace_na(list(var_fin = list(c("0")),
-                                   var_fout = list(c("0")))
-            )
-        }
-  out <- out %>%
+                       values_fn = list) %>%
     dplyr::group_by(!!flow_col) %>%
     summarise(edges = map(.x = var_fout,
                          .y = var_fin,
                          ~expand.grid(source =unlist(.x),
                                       target = unlist(.y)))
     ) %>%
-    tidyr::unnest(cols = edges) %>%
-    dplyr::mutate_all(as.character) %>%
-    dplyr::mutate(source = dplyr::if_else(source == 0,
-                                          paste(!!flow_col, "_source", sep = ""),
-                                          source),
-                  target = dplyr::if_else(target == 0,
-                                          paste(!!flow_col, "_target", sep = ""),
-                                          target))
+    tidyr::unnest(cols = edges)
 }
 
 ###########################
