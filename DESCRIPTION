@@ -17,7 +17,9 @@ Imports:
     tibble,
     tidyr,
     utils, 
-    purrr
+    purrr, 
+    networkD3,
+    htmlwidgets
 RoxygenNote: 7.1.1
 Suggests: 
     rmarkdown,
