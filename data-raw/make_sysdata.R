@@ -21,8 +21,8 @@ vde_file <- utils::read.csv(vde_filename, sep = ",", header = F)
 
 vds_file <- utils::read.csv(vds_filename, sep = ",", header = F)
 
-.vde_reference_structure <- list(vd_header = vd_header,
+.vd_reference_structure <- list(vd_header = vd_header,
                                  vde_file = vde_file,
                                  vds_file = vds_file)
 
-usethis::use_data(.vde_reference_structure, internal = T, overwrite = T)
+usethis::use_data(.vd_reference_structure, internal = T, overwrite = T)

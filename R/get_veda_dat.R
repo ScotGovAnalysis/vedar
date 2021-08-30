@@ -25,7 +25,7 @@ prep_data <- function(filename_base,
                            package = "vedar")
   }
 
-  if(vd_structure_match_expected(vd_file)){
+  if(vd_structure_match_expected(vd_file, "vd_file")){
     dat <- import_vd(vd_file) %>%
       standardise_vd_dat() %>%
       dplyr::mutate(timeslice = fix_timeslice(timeslice))
@@ -33,20 +33,20 @@ prep_data <- function(filename_base,
     stop("vd file structure does not match expected")
   }
 
+  if(vd_structure_match_expected(vde_file, "vde_file")){
+    descriptions <- import_vde(vde_file) %>%
+      standardise_vd_dat()  %>%
+      dplyr::select(-region) %>%
+      unique() %>%
+      dplyr::group_by(variable,  object) %>%
+      # in case a variable entry has more than one description
+      dplyr::summarise(description = paste(description)) %>%
+      dplyr::ungroup()
+  }else{
+    stop("vde file structure does not match expected")
+}
 
-  descriptions <- import_vde(vde_file) %>%
-    standardise_vd_dat()  %>%
-    dplyr::select(-region) %>%
-    unique() %>%
-    dplyr::group_by(variable,  object) %>%
-    # in case a variable entry has more than one description
-    dplyr::summarise(description = paste(description)) %>%
-    dplyr::ungroup()
-
-  # if(ncol(descriptions != ncol(.vde_reference_structure["vde_file"]))){
-  #   stop("ncol of vde file does not match expected")
-  # }
-
+  if(vd_structure_match_expected(vds_file, "vds_file")){
   sets <- import_vds(vds_file) %>%
     standardise_vd_dat() %>%
     # a single variable may be a member of more than one set.
@@ -58,9 +58,9 @@ prep_data <- function(filename_base,
     dplyr::group_by(variable,  object) %>%
     dplyr::summarise(set = list(set))  %>%
     dplyr::ungroup()
-  # if(ncol(sets != ncol(.vde_reference_structure["vds_file"]))){
-  #   stop("ncol of vds file does not match expected")
-  # }
+  }else{
+    stop("vds file structure does not match expected")
+  }
 
   #append descriptions
   # to be converted to a function
@@ -390,12 +390,20 @@ define_sector_from_string <- function(dat){
 #'
 #' Check the input data structure is as expected
 #'
-#' @param filename String. vd filename
-#' @return TRUE if structure matches expected header structure
-vd_structure_match_expected <- function(vd_filename){
+#' @param filename String. vd filename.
+#' @param filetype String "vd_file", "vde_file", "vds_file"
+#' @return TRUE if structure matches expected  structure
+vd_structure_match_expected <- function(filename, filetype){
+  if(filetype == "vd_file"){
+    vd_reference_structure <- .vd_reference_structure[[1]]
+    vd_header <- scan(filename, skip = 2, what = character(),  nmax = 35 )
+    #check vd file structure matches reference structure
+    identical(vd_header, vd_reference_structure)
+  }else{
 
-  vd_reference_structure <- .vde_reference_structure[[1]]
-  vd_header <- scan(vd_filename, skip = 2, what = character(),  nmax = 35 )
-  #check vd file structure matches reference structure
-  identical(vd_header, vd_reference_structure)
+    vd_reference_file <- .vd_reference_structure[[filetype]]
+    file <- read.csv(filename)
+    identical(ncol(file), ncol(vd_reference_file))
+  }
 }
+
