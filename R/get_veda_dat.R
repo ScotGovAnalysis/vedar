@@ -88,8 +88,8 @@ prep_data <- function(filename_base,
 
 
     for(o in c("commodity", "process", "userconstraint")){
-    dat <- append_sets(dat, sets, o)
-  }
+      dat <- append_sets(dat, sets, o)
+    }
 
   dat
   }

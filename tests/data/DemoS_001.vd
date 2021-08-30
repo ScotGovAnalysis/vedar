@@ -1,0 +1,87 @@
+*  GDX2VEDAversion- 2005-10-07
+*         ImportID- Scenario:DemoS_001_2408
+*       VEDAFlavor- TIMES
+*       Dimensions- Attribute;Commodity;Process;Period;Region;Vintage;TimeSlice;UserConstraint;PV
+* ParentDimensions- Commodity: Region; Process: Region; UserConstraint: Region
+*      SetsAllowed- Commodity;Process;UserConstraint
+*        FieldSize- Attribute:31;Commodity:31;Process:31;Period:31;Region:31;Vintage:31;TimeSlice:31;UserConstraint:31;PV:20
+*       NotIndexed- PV
+*         ValueDim- PV
+*  DefaultValueDim- PV
+*   FieldSeparator- ,
+*        TextDelim- "
+
+"VAR_Act","-","DTPSCOA","2005","REG1","2005","ANNUAL","-",13413.96
+"VAR_Act","-","EXPCOA1","2005","REG1","2005","ANNUAL","-",1147.069
+"VAR_Act","-","IMPCOA1","2005","REG1","2005","ANNUAL","-",6462.671
+"VAR_Act","-","MINCOA1","2005","REG1","2005","ANNUAL","-",6073.7685
+"VAR_Act","-","MINCOA2","2005","REG1","2005","ANNUAL","-",2024.5895
+"VAR_Act","-","DTPSCOA","2006","REG1","2006","ANNUAL","-",13413.96
+"VAR_Act","-","EXPCOA1","2006","REG1","2006","ANNUAL","-",1147.069
+"VAR_Act","-","IMPCOA1","2006","REG1","2006","ANNUAL","-",6462.671
+"VAR_Act","-","MINCOA1","2006","REG1","2006","ANNUAL","-",6073.7685
+"VAR_Act","-","MINCOA2","2006","REG1","2006","ANNUAL","-",2024.5895
+"VAR_ActM","-","IMPDEMZ","2005","REG1","2005","ANNUAL","-",8882.2909994
+"VAR_ActM","-","IMPNRGZ","2005","REG1","2005","ANNUAL","-",2219.25
+"VAR_ActM","-","MINCOA1","2005","REG1","2005","ANNUAL","-",-0.75
+"VAR_ActM","-","MINCOA2","2005","REG1","2005","ANNUAL","-",-0.25
+"VAR_ActM","-","MINCOA3","2005","REG1","2005","ANNUAL","-",0.25
+"VAR_ActM","-","IMPDEMZ","2006","REG1","2006","ANNUAL","-",8885.25
+"VAR_ActM","-","IMPNRGZ","2006","REG1","2006","ANNUAL","-",2219.25
+"VAR_ActM","-","MINCOA1","2006","REG1","2006","ANNUAL","-",-0.75
+"VAR_ActM","-","MINCOA2","2006","REG1","2006","ANNUAL","-",-0.25
+"VAR_ActM","-","MINCOA3","2006","REG1","2006","ANNUAL","-",0.25
+"VAR_Cap","-","DTPSCOA","2005","REG1","-","-","-",14119.9578947368
+"VAR_Cap","-","DTPSCOA","2006","REG1","-","-","-",14119.9578947368
+"VAR_Ncap","-","DTPSCOA","2005","REG1","-","-","-",14119.9578947368
+"VAR_NcapM","-","DTPSCOA","2006","REG1","-","-","-",12.5539931163008
+"VAR_FIn","COA","DTPSCOA","2005","REG1","2005","ANNUAL","-",13413.96
+"VAR_FIn","COA","EXPCOA1","2005","REG1","2005","ANNUAL","-",1147.069
+"VAR_FIn","COA","DTPSCOA","2006","REG1","2006","ANNUAL","-",13413.96
+"VAR_FIn","COA","EXPCOA1","2006","REG1","2006","ANNUAL","-",1147.069
+"VAR_FOut","TPSCOA","DTPSCOA","2005","REG1","2005","ANNUAL","-",13413.96
+"VAR_FOut","COA","IMPCOA1","2005","REG1","2005","ANNUAL","-",6462.671
+"VAR_FOut","COA","MINCOA1","2005","REG1","2005","ANNUAL","-",6073.7685
+"VAR_FOut","COA","MINCOA2","2005","REG1","2005","ANNUAL","-",2024.5895
+"VAR_FOut","TPSCOA","DTPSCOA","2006","REG1","2006","ANNUAL","-",13413.96
+"VAR_FOut","COA","IMPCOA1","2006","REG1","2006","ANNUAL","-",6462.671
+"VAR_FOut","COA","MINCOA1","2006","REG1","2006","ANNUAL","-",6073.7685
+"VAR_FOut","COA","MINCOA2","2006","REG1","2006","ANNUAL","-",2024.5895
+"EQ_Combal","TPSCOA","-","2005","REG1","-","ANNUAL","-",13413.96
+"EQ_Combal","TPSCOA","-","2006","REG1","-","ANNUAL","-",13413.96
+"EQ_CombalM","COA","-","2005","REG1","-","ANNUAL","-",2.75
+"EQ_CombalM","TPSCOA","-","2005","REG1","-","ANNUAL","-",5.70900058670107
+"EQ_CombalM","COA","-","2006","REG1","-","ANNUAL","-",2.75
+"EQ_CombalM","TPSCOA","-","2006","REG1","-","ANNUAL","-",2.75
+"EQ_Cumflo","ACT","MINCOA1","2200","REG1","2005","-","-",18221.3055
+"EQ_Cumflo","ACT","MINCOA2","2200","REG1","2005","-","-",6073.7685
+"Cap_New","-","DTPSCOA","2005","REG1","2005","-","INSTCAP",14119.9578947368
+"Cap_New","-","DTPSCOA","2005","REG1","2005","-","LUMPINV",141199.578947368
+"Cost_Inv","-","DTPSCOA","2005","REG1","2005","-","INV",11057.1620609442
+"Cost_Inv","-","DTPSCOA","2006","REG1","2005","-","INV",11057.1620609442
+"Cost_Salv","-","DTPSCOA","-","REG1","2005","-","-",113069.54883225
+"Cost_Fom","-","DTPSCOA","2005","REG1","2005","-","-",2823.99157894737
+"Cost_Fom","-","DTPSCOA","2006","REG1","2005","-","-",2823.99157894737
+"Cost_Flo","COA","EXPCOA1","2005","REG1","2005","-","-",-3154.43975
+"Cost_Flo","COA","IMPCOA1","2005","REG1","2005","-","-",17772.34525
+"Cost_Flo","COA","MINCOA1","2005","REG1","2005","-","-",12147.537
+"Cost_Flo","COA","MINCOA2","2005","REG1","2005","-","-",5061.47375
+"Cost_Flo","COA","EXPCOA1","2006","REG1","2006","-","-",-3154.43975
+"Cost_Flo","COA","IMPCOA1","2006","REG1","2006","-","-",17772.34525
+"Cost_Flo","COA","MINCOA1","2006","REG1","2006","-","-",12147.537
+"Cost_Flo","COA","MINCOA2","2006","REG1","2006","-","-",5061.47375
+"Time_NPV","-","-","2005","REG1","-","ANNUAL","COST",1
+"Time_NPV","-","-","2006","REG1","-","ANNUAL","COST",1.859410430839
+"ObjZ","-","-","-","-","-","-","-",130698.131816674
+"Reg_wobj","MEuro05","-","-","REG1","-","-","INV",31616.964532541
+"Reg_wobj","MEuro05","-","-","REG1","-","-","FIX",8074.95097744361
+"Reg_wobj","MEuro05","-","-","REG1","-","-","VAR",91006.2163066893
+"Reg_wobj","MEuro05","-","-","REG1","-","-","ELS",0
+"Reg_obj","-","-","-","REG1","-","-","-",130698.131816674
+"Reg_ACost","-","-","2005","REG1","-","-","INV",11057.1620609442
+"Reg_ACost","-","-","2005","REG1","-","-","FIX",2823.99157894737
+"Reg_ACost","-","-","2005","REG1","-","-","VAR",31826.91625
+"Reg_ACost","-","-","2006","REG1","-","-","INV",11057.1620609442
+"Reg_ACost","-","-","2006","REG1","-","-","FIX",2823.99157894737
+"Reg_ACost","-","-","2006","REG1","-","-","VAR",31826.91625
+"User_con","-","-","NONE","NONE","-","NONE","SOLVE_STATUS",1
