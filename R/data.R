@@ -50,3 +50,41 @@
 #'     lower list object}
 #' }
 "demos_001"
+
+#' Results from define_sector_from_list(demos_001)
+#'
+#' Results data from the DemoS_001 model in veda 2 using demos_001 run
+#' with sectors defined from list. Dataset containing all
+#' attributes, commodities and processes and sector appended#'
+#'
+#' @format Tibble with 117 rows and 15 columns:
+#' \describe{
+#'     \item{attribute}{attribute name as lower case string}
+#'     \item{commodity}{commodity name as lower case string}
+#'     \item{process}{process name as lower case string}
+#'     \item{period}{model period as numeric}
+#'     \item{region}{region name as lower case string}
+#'     \item{vintage}{model vintage as numeric}
+#'     \item{timeslice}{timeslice as string. Missing data converted to
+#'     annual}
+#'     \item{usercontraint}{userconstraint name as lower case string}
+#'     \item{pv}{numeric value for the datum}
+#'     \item{commodity_description}{Imported commodity description as
+#'     lower case string}
+#'      \item{process_description}{Imported process description as
+#'     lower case string}
+#'      \item{userconstraint_description}{Imported userconstraint description as
+#'     lower case string}
+#'      \item{commodity_set}{Imported commodity sets as
+#'     lower list object}
+#'     \item{process_set}{Imported process sets as
+#'     lower list object}
+#'     \item{userconstriant_set}{Imported userconstraint sets as
+#'     lower list object}
+#'     \item{sector_commodity}{String. Sector assigned to commodity variable}
+#'     \item{sector_process}{String. Sector assigned to process variable}
+#'     \item{sector}{String. Sector assigned based on priority
+#'     of process then commodity} process variable}
+#'     \item{sector_match}{Logical sector(commodity)==sector(process)}
+#' }
+"demos_001"

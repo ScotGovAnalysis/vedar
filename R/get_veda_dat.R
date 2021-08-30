@@ -5,7 +5,7 @@
 #     mutate(case = "ccpu")
 #
 ####################################################
-#' export
+#' @export
 prep_data <- function(filename_base,
                       vignette = F
                       ){
@@ -116,7 +116,7 @@ prep_data <- function(filename_base,
 
 
 ###################################
-#' export
+#' @export
 import_vd <- function(file, dat_row_skip = 13, dim_row = 4){
   dat <- utils::read.table(file,
                     sep = ",",
@@ -157,14 +157,14 @@ add_col_names <- function(dat, col_names){
 }
 
 ###################################
-#' export
+#' @export
 import_vde <- function(file){
   desc <- utils::read.csv(file, header = F, sep = ",")
   names(desc) <- c("object", "region", "variable", "description")
   desc
 }
 ###################################
-#' export
+#' @export
 import_vds <- function(file){
   set <- utils::read.csv(file, header = F, sep = ",")
   names(set) <- c("object", "region", "set", "variable")
@@ -300,7 +300,7 @@ append_sets <- function(dat, sets_dat, obj){
 }
 
 ##########################################
-#' export
+#' @export
 prep_sector_dat <- function(sector_dat){
   # replace spaces in col names with _
   names(sector_dat) <- sub(" ", "_", names(sector_dat))
@@ -325,7 +325,6 @@ prep_sector_dat <- function(sector_dat){
 #'
 #' @param dat A tibble of veda data from import_vd or prep_data
 #' @param join_variable_name A string column name in dat for joining to sector_dat
-#' export
 #' @param sector_dat A tibble containing the sector information for variables
 #' @param sector_info_col Column in sector_dat containing sector information
 #' @param sector_dat_variable_col Column in sector_dat for joining to dat
@@ -352,7 +351,7 @@ prep_sector_dat <- function(sector_dat){
 #' t <- define_sector_from_list(test_dat, "process", sector_dat,
 #'                             major_sector, process)
 #'
-#' export
+#' @export
 define_sector_from_list <- function(dat,
                                     join_variable_name,
                                     sector_dat,
@@ -395,7 +394,7 @@ define_sector_from_list <- function(dat,
 #' demos_001 %>%
 #'     define_sector_from_string
 #'
-#'export
+#' @export
 define_sector_from_string <- function(dat){
 
     dat %>%
