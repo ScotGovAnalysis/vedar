@@ -15,8 +15,7 @@ define_sector_from_list(
 \arguments{
 \item{dat}{A tibble of veda data from import_vd or prep_data}
 
-\item{join_variable_name}{A string column name in dat for joining to sector_dat
-export}
+\item{join_variable_name}{A string column name in dat for joining to sector_dat}
 
 \item{sector_dat}{A tibble containing the sector information for variables}
 
@@ -52,5 +51,4 @@ sector_dat <- tibble::tibble(major_sector = "agr",
 t <- define_sector_from_list(test_dat, "process", sector_dat,
                             major_sector, process)
 
-export
 }
