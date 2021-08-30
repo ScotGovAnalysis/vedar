@@ -14,9 +14,13 @@ prep_data <- function(filename_base,
   vds_file <- paste(filename_base, ".VDS", sep = "")
 
   if(vignette == F){
+  if(vd_structure_match_expected(vd_file)){
     dat <- import_vd(vd_file) %>%
       standardise_vd_dat() %>%
       dplyr::mutate(timeslice = fix_timeslice(timeslice))
+  }else{
+    stop("vd file structure does not match expected")
+  }
 
 
   descriptions <- import_vde(vde_file) %>%
@@ -27,6 +31,10 @@ prep_data <- function(filename_base,
     # in case a variable entry has more than one description
     dplyr::summarise(description = paste(description)) %>%
     dplyr::ungroup()
+
+  if(ncol(descriptions != ncol(.vde_reference_structure["vde_file"]))){
+    stop("ncol of vde file does not match expected")
+  }
 
   sets <- import_vds(vds_file) %>%
     standardise_vd_dat() %>%
@@ -39,18 +47,24 @@ prep_data <- function(filename_base,
     dplyr::group_by(variable,  object) %>%
     dplyr::summarise(set = list(set))  %>%
     dplyr::ungroup()
+  if(ncol(sets != ncol(.vde_reference_structure["vds_file"]))){
+    stop("ncol of vds file does not match expected")
+  }
+
+
   }
   else{
-    vd_file <- paste(filename_base, ".VD", sep = "")
-    vde_file <- paste(filename_base, ".VDE", sep = "")
-    vds_file <- paste(filename_base, ".VDS", sep = "")
 
+    if(vd_structure_match_expected(vd_file)){
+      dat <- import_vd(system.file("extdata",
+                                   vd_filename,
+                                   package = "vedar")) %>%
+        standardise_vd_dat() %>%
+        dplyr::mutate(timeslice = fix_timeslice(timeslice))
+    }else{
+      stop("vd file structure does not match expected")
+    }
 
-    dat <- import_vd(system.file("extdata",
-                                 vd_filename,
-                                 package = "vedar")) %>%
-      standardise_vd_dat() %>%
-      dplyr::mutate(timeslice = fix_timeslice(timeslice))
 
     descriptions <- import_vde(system.file("extdata",
                                            vde_filename,
@@ -62,6 +76,10 @@ prep_data <- function(filename_base,
       # in case a variable entry has more than one description
       dplyr::summarise(description = paste(description)) %>%
       dplyr::ungroup()
+
+    if(ncol(descriptions != ncol(.vde_reference_structure["vde_file"]))){
+      stop("ncol of vde file does not match expected")
+    }
 
     sets <- import_vds(system.file("extdata",
                                    vds_filename,
@@ -76,6 +94,9 @@ prep_data <- function(filename_base,
       dplyr::group_by(variable,  object) %>%
       dplyr::summarise(set = list(set))  %>%
       dplyr::ungroup()
+    if(ncol(sets != ncol(.vde_reference_structure["vds_file"]))){
+      stop("ncol of vds file does not match expected")
+    }
 
 
 
@@ -403,4 +424,19 @@ define_sector_from_string <- function(dat){
                     sector = dplyr::if_else(
                       sector == "" | is.null(sector),
                       define_sector(commodity,"code"), sector))
+}
+
+###############################
+#' Check structure of vd data
+#'
+#' Check the input data structure is as expected
+#'
+#' @param filename String. vd filename
+#' @return TRUE if structure matches expected header structure
+vd_structure_match_expected <- function(filename){
+
+  vd_reference_structure <- .vde_reference_structure[[1]]
+  vd_header <- scan(vd_filename, skip = 2, what = character(),  nmax = 35 )
+  #check vd file structure matches reference structure
+  identical(vd_header, vd_reference_structure)
 }
