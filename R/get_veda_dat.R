@@ -36,7 +36,6 @@ prep_data <- function(filename_base,
   if(vd_structure_match_expected(vde_file, "vde_file")){
     descriptions <- import_vde(vde_file) %>%
       standardise_vd_dat()  %>%
-      ###dplyr::select(-region) %>%
       unique() %>%
       dplyr::group_by(variable,  object) %>%
       # in case a variable entry has more than one description
@@ -54,7 +53,6 @@ prep_data <- function(filename_base,
     # for each variable.
     #  This is needed to ensure that rows are not repeated
     #   when sets are joined to dat
-    ###dplyr::select(-region) %>%
     dplyr::group_by(variable,  object) %>%
     dplyr::summarise(set = list(set))  %>%
     dplyr::ungroup()
