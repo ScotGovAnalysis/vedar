@@ -10,7 +10,8 @@ vignette: >
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
   collapse = TRUE,
-  comment = "#>"
+  comment = "#>", 
+  echo = F
 )
 ```
 
@@ -28,7 +29,7 @@ The Veda graphical user interface provides a means of interrogating the Veda sol
 
 # Getting veda data into R
 
-The vignette uses the data that is created from processing the demos_001 model that is run in Veda2.0. 
+The vignette uses the data that is created from processing demos model that were run in Veda2.0. 
 
 ```{r, warning = F}
 
@@ -151,3 +152,53 @@ demos_001 %>%
 ```
 
 
+
+
+# Viewing the Reference Energy System
+The RES is a visual representation of processes and commodity flows. Vedar uses a Sankey diagram representation of the RES, with processes as nodes, and commodity flows as edges. The function `make_res()` creates the RES for a selected period, region and sector.
+
+
+Here, we use the dataset from the DemoS_007 default run (DemoS_007). This is a multiregion model. The data has not had a sectors defined, so we first append an arbitrary sector to include all the data. 
+
+We first use the option of labeling nodes by the process_description. We label the edges by the commodity_description column, and set the font_size of the node labels.
+
+```{r, fig.width=7, , fig.height=5}
+data("demos_007")
+
+demos_007 <- demos_007 %>%
+  mutate(sector = "s")
+
+res <- make_res(dat = demos_007, 
+                period_select = 2020, 
+                region_select = "reg2", 
+                sector_select = "s", 
+                node_labels = process_description, 
+                edge_labels = commodity_description, 
+                font_size = 10)
+
+res
+
+
+
+```
+
+The flow labels are shown as tooltips when the mouse hovers over the edges. The magnitude of the flows is not included and all edges are shown with equal width. For visual representation, all demand commodities are shown to flow into a "demand commodity"_end_process.
+
+To make the diagram less cluttered, the node label can use the process code. As an example, we select a different year and region for this example.
+
+```{r, fig.width=7, fig.height=5}
+
+
+res <- make_res(dat = demos_007, 
+                period_select = 2015, 
+                region_select = "reg1", 
+                sector_select = "s", 
+                node_labels = process, 
+                edge_labels = commodity_description, 
+                font_size = 10)
+
+res
+
+
+
+```
