@@ -9,6 +9,7 @@
 #' @param dat Tibble output from prep_data() \%>\% define_sector_from_*().
 #' @param period_select Numeric. Period for plotting RES.
 #' @param sector_select String. Sector for plotting RES.
+#' @param region_select String. Region for plotting RES
 #' @param node_labels Column in dat for labelling nodes.
 #' @param edge_labels Column in dat for labelling edges.
 #' @param font_size Numeric. Font size for RES labels.
@@ -21,7 +22,9 @@
 #'              font_size = 11)
 #' @return NetworkD3 Sankey object
 #' @export
-make_res <- function(dat, period_select = NULL, sector_select = NULL,
+make_res <- function(dat, period_select = NULL,
+                     sector_select = NULL,
+                     region_select = NULL,
                      node_labels = process_description,
                      edge_labels = commodity_description,
                      font_size){
@@ -36,6 +39,9 @@ make_res <- function(dat, period_select = NULL, sector_select = NULL,
   if(sector_select %in% dat$sector == F){
     stop("sector_select not in sector of data")
   }
+   if(region_select %in% dat$region == F){
+     stop("region_select not in regions of data")
+   }
   if("sector" %in% names(dat) == F){
     stop("Data missing sector information. Define sectors")
   }
@@ -43,7 +49,8 @@ make_res <- function(dat, period_select = NULL, sector_select = NULL,
   dat <- dat %>%
     dplyr::filter(attribute == "var_fin" | attribute == "var_fout",
            period == period_select,
-           sector == sector_select) %>%
+           sector == sector_select,
+           region == region_select) %>%
     dplyr::select(attribute, commodity, process,
            commodity_description, process_description,
            pv) %>%
