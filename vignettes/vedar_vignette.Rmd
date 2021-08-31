@@ -46,12 +46,6 @@ The functions `import_vd(vd_filename)`, `import_vds(vds_filename)` and `import_v
 
 ```{r, warning = F}
 
-filename_base <- "DemoS_001"
-
-vd_filename <- paste(filename_base, ".vd", sep = "")
-vds_filename <- paste(filename_base, ".vds", sep = "")
-vde_filename <- paste(filename_base, ".vde", sep = "")
-
 demos_vd <- import_vd(system.file("extdata", 
                                   vd_filename,
                                   package = "vedar"))
