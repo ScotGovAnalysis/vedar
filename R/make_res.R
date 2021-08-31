@@ -51,6 +51,11 @@ make_res <- function(dat, period_select = NULL,
            period == period_select,
            sector == sector_select,
            region == region_select) %>%
+    #sum over timeslice and vintage
+    dplyr::group_by(attribute, commodity, process,
+                    commodity_description, process_description) %>%
+    dplyr::summarise(pv = sum(pv)) %>%
+    ungroup() %>%
     dplyr::select(attribute, commodity, process,
            commodity_description, process_description,
            pv) %>%
