@@ -135,6 +135,7 @@ flatten_dfr(demos_001_results["All costs.csv"]) %>%
          Commodity, 
          Process, 
          Period, 
+         Region,
          Pv) %>%
   arrange(Attribute, Process, Period) %>%
   knitr::kable()
@@ -149,6 +150,7 @@ demos_001 %>%
          commodity, 
          process, 
          period, 
+         region,
          pv) %>%
   arrange(attribute, process, period)  %>%
   knitr::kable()
