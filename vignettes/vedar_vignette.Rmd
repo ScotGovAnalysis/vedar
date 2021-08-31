@@ -89,11 +89,15 @@ sectors_process_file <- "sectors_process.csv"
 sectors_commodity <- system.file("extdata", 
                                   sectors_commodity_file,
                                   package = "vedar") %>%
-  read.csv()
+  read.csv() %>%
+  #convert to lower case strings
+  prep_sector_dat()
 sectors_process <- system.file("extdata", 
                                   sectors_process_file,
                                   package = "vedar") %>%
-  read.csv()
+  read.csv() %>%
+  #convert to lower case strings
+  prep_sector_dat()
 
 demos_001 <- demos_001 %>%
   #assign the sector to the commodity

@@ -5,7 +5,7 @@
 #     mutate(case = "ccpu")
 #
 ####################################################
-#' export
+#' @export
 prep_data <- function(filename_base,
                       vignette = F
                       ){
@@ -13,21 +13,40 @@ prep_data <- function(filename_base,
   vde_file <- paste(filename_base, ".VDE", sep = "")
   vds_file <- paste(filename_base, ".VDS", sep = "")
 
-  if(vignette == F){
+  if(vignette == T){
+    vd_file <- system.file("extdata",
+                           vd_file,
+                           package = "vedar")
+    vde_file <- system.file("extdata",
+                           vde_file,
+                           package = "vedar")
+    vds_file <- system.file("extdata",
+                           vds_file,
+                           package = "vedar")
+  }
+
+  if(vd_structure_match_expected(vd_file, "vd_file")){
     dat <- import_vd(vd_file) %>%
       standardise_vd_dat() %>%
       dplyr::mutate(timeslice = fix_timeslice(timeslice))
+  }else{
+    stop("vd file structure does not match expected")
+  }
 
+  if(vd_structure_match_expected(vde_file, "vde_file")){
+    descriptions <- import_vde(vde_file) %>%
+      standardise_vd_dat()  %>%
+      dplyr::select(-region) %>%
+      unique() %>%
+      dplyr::group_by(variable,  object) %>%
+      # in case a variable entry has more than one description
+      dplyr::summarise(description = paste(description)) %>%
+      dplyr::ungroup()
+  }else{
+    stop("vde file structure does not match expected")
+}
 
-  descriptions <- import_vde(vde_file) %>%
-    standardise_vd_dat()  %>%
-    dplyr::select(-region) %>%
-    unique() %>%
-    dplyr::group_by(variable,  object) %>%
-    # in case a variable entry has more than one description
-    dplyr::summarise(description = paste(description)) %>%
-    dplyr::ungroup()
-
+  if(vd_structure_match_expected(vds_file, "vds_file")){
   sets <- import_vds(vds_file) %>%
     standardise_vd_dat() %>%
     # a single variable may be a member of more than one set.
@@ -39,48 +58,9 @@ prep_data <- function(filename_base,
     dplyr::group_by(variable,  object) %>%
     dplyr::summarise(set = list(set))  %>%
     dplyr::ungroup()
+  }else{
+    stop("vds file structure does not match expected")
   }
-  else{
-    vd_file <- paste(filename_base, ".VD", sep = "")
-    vde_file <- paste(filename_base, ".VDE", sep = "")
-    vds_file <- paste(filename_base, ".VDS", sep = "")
-
-
-    dat <- import_vd(system.file("extdata",
-                                 vd_filename,
-                                 package = "vedar")) %>%
-      standardise_vd_dat() %>%
-      dplyr::mutate(timeslice = fix_timeslice(timeslice))
-
-    descriptions <- import_vde(system.file("extdata",
-                                           vde_filename,
-                                           package = "vedar")) %>%
-      standardise_vd_dat()  %>%
-      dplyr::select(-region) %>%
-      unique() %>%
-      dplyr::group_by(variable,  object) %>%
-      # in case a variable entry has more than one description
-      dplyr::summarise(description = paste(description)) %>%
-      dplyr::ungroup()
-
-    sets <- import_vds(system.file("extdata",
-                                   vds_filename,
-                                   package = "vedar")) %>%
-      standardise_vd_dat() %>%
-      # a single variable may be a member of more than one set.
-      # Reduce dimension of sets by creating a set of sets
-      # for each variable.
-      #  This is needed to ensure that rows are not repeated
-      #   when sets are joined to dat
-      dplyr::select(-region) %>%
-      dplyr::group_by(variable,  object) %>%
-      dplyr::summarise(set = list(set))  %>%
-      dplyr::ungroup()
-
-
-
-  }
-
 
   #append descriptions
   # to be converted to a function
@@ -108,15 +88,15 @@ prep_data <- function(filename_base,
 
 
     for(o in c("commodity", "process", "userconstraint")){
-    dat <- append_sets(dat, sets, o)
-  }
+      dat <- append_sets(dat, sets, o)
+    }
 
   dat
   }
 
 
 ###################################
-#' export
+#' @export
 import_vd <- function(file, dat_row_skip = 13, dim_row = 4){
   dat <- utils::read.table(file,
                     sep = ",",
@@ -157,14 +137,14 @@ add_col_names <- function(dat, col_names){
 }
 
 ###################################
-#' export
+#' @export
 import_vde <- function(file){
   desc <- utils::read.csv(file, header = F, sep = ",")
   names(desc) <- c("object", "region", "variable", "description")
   desc
 }
 ###################################
-#' export
+#' @export
 import_vds <- function(file){
   set <- utils::read.csv(file, header = F, sep = ",")
   names(set) <- c("object", "region", "set", "variable")
@@ -300,7 +280,7 @@ append_sets <- function(dat, sets_dat, obj){
 }
 
 ##########################################
-#' export
+#' @export
 prep_sector_dat <- function(sector_dat){
   # replace spaces in col names with _
   names(sector_dat) <- sub(" ", "_", names(sector_dat))
@@ -325,7 +305,6 @@ prep_sector_dat <- function(sector_dat){
 #'
 #' @param dat A tibble of veda data from import_vd or prep_data
 #' @param join_variable_name A string column name in dat for joining to sector_dat
-#' export
 #' @param sector_dat A tibble containing the sector information for variables
 #' @param sector_info_col Column in sector_dat containing sector information
 #' @param sector_dat_variable_col Column in sector_dat for joining to dat
@@ -352,7 +331,7 @@ prep_sector_dat <- function(sector_dat){
 #' t <- define_sector_from_list(test_dat, "process", sector_dat,
 #'                             major_sector, process)
 #'
-#' export
+#' @export
 define_sector_from_list <- function(dat,
                                     join_variable_name,
                                     sector_dat,
@@ -395,7 +374,7 @@ define_sector_from_list <- function(dat,
 #' demos_001 %>%
 #'     define_sector_from_string
 #'
-#'export
+#' @export
 define_sector_from_string <- function(dat){
 
     dat %>%
@@ -405,3 +384,26 @@ define_sector_from_string <- function(dat){
                       sector == "" | is.null(sector),
                       define_sector(commodity,"code"), sector))
 }
+
+###############################
+#' Check structure of vd data
+#'
+#' Check the input data structure is as expected
+#'
+#' @param filename String. vd filename.
+#' @param filetype String "vd_file", "vde_file", "vds_file"
+#' @return TRUE if structure matches expected  structure
+vd_structure_match_expected <- function(filename, filetype){
+  if(filetype == "vd_file"){
+    vd_reference_structure <- .vd_reference_structure[[1]]
+    vd_header <- scan(filename, skip = 2, what = character(),  nmax = 35 )
+    #check vd file structure matches reference structure
+    identical(vd_header, vd_reference_structure)
+  }else{
+
+    vd_reference_file <- .vd_reference_structure[[filetype]]
+    file <- read.csv(filename)
+    identical(ncol(file), ncol(vd_reference_file))
+  }
+}
+

@@ -30,12 +30,20 @@ Tibble with 117 rows and 15 columns:
     \item{userconstriant_set}{Imported userconstraint sets as
     lower list object}
 }
+
+
 }
 \usage{
+demos_001
+
 demos_001
 }
 \description{
 Results data from the DemoS_001 model in veda 2 using demos_001 run.
 Dataset containing all attributes, commodities and processes#'
+
+Results data from the DemoS_001 model in veda 2 using demos_001 run
+with sectors defined from list. Dataset containing all
+attributes, commodities and processes and sector appended#'
 }
 \keyword{datasets}
