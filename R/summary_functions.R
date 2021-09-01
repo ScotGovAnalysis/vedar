@@ -1,4 +1,10 @@
-
+#' Extract the undiscounted system cost
+#'
+#' Extract undiscounted system cost as the reg_obj variable for each region
+#'
+#' @param dat Tibble of veda output data from prep_data with or without
+#' additional variables
+#' @return Tibble (n(regions) x 2): region, syscost
 #' @export
 syscost <- function(dat){
   if("reg_obj" %in% dat$attribute == F){
