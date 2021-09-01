@@ -9,15 +9,16 @@ syscost <- function(dat){
   }
 
   out <- dat %>%
-    filter(attribute == "reg_obj")
+    dplyr::filter(attribute == "reg_obj")
 
-  if(nrow(out) !=
-     unique((demos_007 %>% filter(is.na(region) == F))$region)){
-    stop("Data issue: The number of regions does not equal
+  if(all(unique(out$region) !=
+     unique((demos_007 %>% filter(is.na(region) == F))$region))){
+    stop("syscost error: The number of regions does not equal
          the reg_obj attributes.")
   }
-  out <- out
-    group_by(region) %>%
-    summarise(syscost = pv)
+  out <- out %>%
+    dplyr::group_by(region) %>%
+    dplyr::summarise(syscost = pv) %>%
+    ungroup()
 
 }
