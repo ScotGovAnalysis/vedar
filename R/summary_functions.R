@@ -11,7 +11,8 @@ syscost <- function(dat){
   out <- dat %>%
     filter(attribute == "reg_obj")
 
-  if(nrow(out) != unique(dat$region)){
+  if(nrow(out) !=
+     unique((demos_007 %>% filter(is.na(region) == F))$region)){
     stop("Data issue: The number of regions does not equal
          the reg_obj attributes.")
   }
