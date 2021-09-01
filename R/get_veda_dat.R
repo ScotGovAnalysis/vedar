@@ -170,7 +170,11 @@ standardise_vd_dat <- function(dat){
   dat  %>%
     # convert all strings to lower numeric
     dplyr::mutate_if(is.factor, as.character) %>%
-    dplyr::mutate_if(is.character, stringr::str_to_lower)
+    dplyr::mutate_if(is.character, stringr::str_to_lower) %>%
+    # replace all "none" or "-" with NA
+    dplyr::mutate_if(is.character, stringr::str_replace, "(none)|-", NA_character_)
+
+
 
 
 }
