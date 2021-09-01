@@ -8,6 +8,7 @@ make_res(
   dat,
   period_select = NULL,
   sector_select = NULL,
+  region_select = NULL,
   node_labels = process_description,
   edge_labels = commodity_description,
   font_size
@@ -19,6 +20,8 @@ make_res(
 \item{period_select}{Numeric. Period for plotting RES.}
 
 \item{sector_select}{String. Sector for plotting RES.}
+
+\item{region_select}{String. Region for plotting RES}
 
 \item{node_labels}{Column in dat for labelling nodes.}
 
