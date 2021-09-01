@@ -33,11 +33,13 @@ prep_data <- function(filename_base,
     stop("vd file structure does not match expected")
   }
 
+  length_data <- nrow(dat)
+
   if(vd_structure_match_expected(vde_file, "vde_file")){
     descriptions <- import_vde(vde_file) %>%
       standardise_vd_dat()  %>%
       unique() %>%
-      dplyr::group_by(variable,  object) %>%
+      dplyr::group_by(variable,  object, region) %>%
       # in case a variable entry has more than one description
       dplyr::summarise(description = paste(description)) %>%
       dplyr::ungroup()
@@ -53,7 +55,7 @@ prep_data <- function(filename_base,
     # for each variable.
     #  This is needed to ensure that rows are not repeated
     #   when sets are joined to dat
-    dplyr::group_by(variable,  object) %>%
+    dplyr::group_by(variable,  object, region) %>%
     dplyr::summarise(set = list(set))  %>%
     dplyr::ungroup()
   }else{
@@ -65,21 +67,24 @@ prep_data <- function(filename_base,
   dat <- dat %>%
     dplyr::left_join(descriptions %>%
                        dplyr::filter(object == "commodity") %>%
-                       dplyr::select(variable, description) %>%
-                       dplyr::rename(commodity = variable),
-              by = "commodity") %>%
+                       dplyr::select(variable, description, region) %>%
+                       dplyr::rename(commodity = variable) %>%
+                       dplyr::filter(is.na(commodity) == F),
+              by = c("commodity", "region")) %>%
     dplyr::rename(commodity_description = description) %>%
     dplyr::left_join(descriptions %>%
                        dplyr::filter(object == "process") %>%
-                       dplyr::select(variable, description) %>%
-                       dplyr::rename(process = variable),
-              by = "process") %>%
+                       dplyr::select(variable, description, region) %>%
+                       dplyr::rename(process = variable) %>%
+                       dplyr::filter(is.na(process) == F),
+              by = c("process", "region")) %>%
     dplyr::rename(process_description = description) %>%
     dplyr::left_join(descriptions %>%
                        dplyr::filter(object == "userconstraint") %>%
-                       dplyr::select(variable, description) %>%
-                       dplyr::rename(userconstraint = variable),
-              by = "userconstraint") %>%
+                       dplyr::select(variable, description, region) %>%
+                       dplyr::rename(userconstraint = variable)%>%
+                       dplyr::filter(is.na(userconstraint) == F),
+              by = c("userconstraint", "region")) %>%
     dplyr::rename(userconstraint_description = description )
 
 
@@ -88,7 +93,9 @@ prep_data <- function(filename_base,
     for(o in c("commodity", "process", "userconstraint")){
       dat <- append_sets(dat, sets, o)
     }
-
+  if(nrow(dat) != length_data){
+    stop("data length has changed in prep_data! Check prep_data code!")
+  }
   dat
   }
 
@@ -171,8 +178,8 @@ standardise_vd_dat <- function(dat){
     # convert all strings to lower numeric
     dplyr::mutate_if(is.factor, as.character) %>%
     dplyr::mutate_if(is.character, stringr::str_to_lower) %>%
-    # replace all "none" or "-" with NA
-    dplyr::mutate_if(is.character, stringr::str_replace, "(none)|-", NA_character_)
+    # replace all "none" or "-" with NA. ^-$ is regex for full string match to "-"
+    dplyr::mutate_if(is.character, stringr::str_replace, "(none)|^-$", NA_character_)
 
 
 
@@ -274,10 +281,12 @@ append_sets <- function(dat, sets_dat, obj){
   sets_dat <- sets_dat %>%
     dplyr::filter(object == obj) %>%
     dplyr::rename(!!rlang::sym(obj) := variable) %>% #sym converts obj string to symbol and unquote with !!
-    dplyr::select(-object)
+    dplyr::select(-object) %>%
+    dplyr::filter(is.na(!!obj) == F)
 
   dat %>%
-    dplyr::left_join(sets_dat, by = obj) %>%
+    dplyr::left_join(sets_dat#, by = vars(obj, region)
+                     ) %>%
     dplyr::rename(!!paste(obj, "_set", sep = "") := set)
 }
 
