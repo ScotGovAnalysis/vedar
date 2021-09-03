@@ -199,78 +199,7 @@ fix_timeslice <- function(timeslice){
   timeslice_fixed
 }
 ###################################
-define_sector_from_string_subfunction <- function(variable, sector_def_var){
-  if(sector_def_var == "code"){
-    sector <- dplyr::case_when(
-      grepl("^([Aa](?!(ct)))[A-Za-z0-9]|(ghg-agr)",
-            variable,
-            perl = T) ~ "agriculture",
-      grepl("^([Ee](?!x))[A-Za-z0-9]|(ghg-elc)",
-            variable,
-            perl = T) ~  "electricity",
-      grepl("^([Ii](?!(mp)))[A-Za-z0-9]|(ghg-ind)",
-            variable,
-            perl = T) ~ "industry",
-      grepl("^([u](?!(rn)))[a-z0-9]",
-            variable,
-            perl = T) ~ "industry",
-      grepl("(ghg-fsup-ets)",
-            variable,
-            perl = T) ~ "industry",
-      grepl("(ghg-other)",
-            variable,
-            perl = T) ~ "industry",
-      grepl("(ghg-fsup-non-ets)",
-            variable,
-            perl = T) ~ "waste",
-      grepl("^(pw)[A-Za-z0-9]",
-            variable,
-            perl = T) ~ "waste",
-      grepl("^(land)|(luco2)|(dumlu)",
-            variable,
-            perl = T) ~ "land",
-      grepl("^[p](?!w)[A-Za-z0-9]|(ghg-prc)",
-            variable,
-            perl = T) ~ "industry",
-      grepl("^(urn)",
-            variable,
-            perl = T) ~ "resources",
-      grepl("^(ccs)|(co2seq)",
-            variable,
-            perl = T) ~ "industry",
-      grepl("^([Rr](?!(nw)))[A-Za-z0-9]|(ghg-res)",
-            variable,
-            perl = T) ~ "residential",
-      grepl("^(exp)|(imp)|(min)|(rnw)", #starts with any of these strings
-            variable,
-            perl = T) ~ "resources",
-      grepl("^[Ss][A-Za-z0-9]|(ghg-ser)",
-            variable,
-            perl = T) ~ "services",
-      grepl("^[Tt][A-Za-z0-9]|(ghg-tra)",
-            variable,
-            perl = T) ~ "transport",
-      grepl("(magic)|(target-missed)",
-            variable,
-            perl = T) ~ "target missed",
-      grepl("(ghg-ggr)",
-            variable,
-            perl = T) ~ "industry",
-      grepl("(ghg-ias)",
-            variable,
-            perl = T) ~ "transport",
-      TRUE ~ ""
-    )
-  }else if(sector_def_var == "description"){
-    #split the description on the first "." and use the returned first column
-    sector = str_split_fixed(variable, "[.]", n = 2)[,1] # "[.]" is needed as regex
-  }
 
-  sector
-
-}
-
-###############################
 append_sets <- function(dat, sets_dat, obj){
   #sets_dat is a long df which includes data for commodity, process, userconstraint.
   #The sets for each will be added as a column to dat
@@ -371,31 +300,6 @@ define_sector_from_list <- function(dat,
   dat
 }
 
-
-#################
-#' Define sectors based on string matches
-#'
-#' Use specified regular expressions for sector definitions based on naming
-#' conventions used for Scottish Times Model
-#'
-#' @param dat A tibble of veda data from import_vd or prep_data
-#'
-#' @example
-#' data(demos_001)
-#' demos_001 %>%
-#'     define_sector_from_string
-#'
-#' @export
-define_sector_from_string <- function(dat){
-
-    dat %>%
-      dplyr::mutate(sector = define_sector_from_string_subfunction(
-        process, "code"),
-                    sector = dplyr::if_else(
-                      sector == "" | is.null(sector),
-                      define_sector_from_string_subfunction(
-                        commodity,"code"), sector))
-}
 
 ###############################
 #' Check structure of vd data
