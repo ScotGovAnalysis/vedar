@@ -389,11 +389,12 @@ define_sector_from_list <- function(dat,
 define_sector_from_string <- function(dat){
 
     dat %>%
-      dplyr::mutate(sector = define_sector_from_string_subfunction(process,
-                                                                   "code"),
+      dplyr::mutate(sector = define_sector_from_string_subfunction(
+        process, "code"),
                     sector = dplyr::if_else(
                       sector == "" | is.null(sector),
-                      define_sector(commodity,"code"), sector))
+                      define_sector_from_string_subfunction(
+                        commodity,"code"), sector))
 }
 
 ###############################
