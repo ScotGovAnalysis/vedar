@@ -199,7 +199,7 @@ fix_timeslice <- function(timeslice){
   timeslice_fixed
 }
 ###################################
-define_sector_from_string_subfunctio <- function(variable, sector_def_var){
+define_sector_from_string_subfunction <- function(variable, sector_def_var){
   if(sector_def_var == "code"){
     sector <- dplyr::case_when(
       grepl("^([Aa](?!(ct)))[A-Za-z0-9]|(ghg-agr)",
