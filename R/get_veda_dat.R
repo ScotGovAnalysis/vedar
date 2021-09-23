@@ -106,7 +106,9 @@ import_vd <- function(file, dat_row_skip = 13, dim_row = 4){
   dat <- utils::read.table(file,
                     sep = ",",
                     skip = dat_row_skip,
-                    header = F)
+                    header = F,
+                    colClasses = c(rep("character", 8),
+                                   "numeric"))
 
 
 
