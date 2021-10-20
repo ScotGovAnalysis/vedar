@@ -230,9 +230,12 @@ prep_sector_dat <- function(sector_dat){
 
   sector_dat %>%
     #strings to lower
-    dplyr::mutate_if(is.character, stringr::str_to_lower) %>%
-    #column names to lower
-    dplyr::rename_with(tolower)
+    dplyr::mutate_if(is.character, stringr::str_to_lower)
+
+  #column names to lower
+  names(sector_dat) <- stringr::str_to_lower(names(sector_dat))
+
+  sector_dat
 
 
 
