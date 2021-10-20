@@ -236,7 +236,9 @@ out <- dat %>%
     dplyr::select(!!flow_col, !!node_col, attribute) %>%
     tidyr::pivot_wider(values_from = !!node_col,
                        names_from = attribute,
-                       values_fn = list) %>%
+                       #specify that non-unique values are collapsed to a list
+                       #for all variables
+                       values_fn = list(list)) %>%
     dplyr::group_by(!!flow_col) %>%
     summarise(edges = map(.x = var_fout,
                          .y = var_fin,
