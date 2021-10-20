@@ -61,11 +61,12 @@ make_res <- function(dat, period_select = NULL,
            pv) %>%
     unique()
 
-  # demand commodities do not have end process.
+  #  commodities may lack start or end process.
   # To show on RES, an extra node must be added.
   # Named by commodity
   dat <- dat %>%
-    add_missing_nodes("var_fout")
+    add_missing_nodes("var_fout") %>%
+    add_missing_nodes("var_fin")
 
 
   nodes <- make_nodes(dat, process) %>%
