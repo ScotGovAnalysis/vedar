@@ -28,4 +28,5 @@ If the above does not work, you can install from source:
 - prep_sector_dat(sector_dat) converts cases to lower and removes spaces from column names in sector_dat. sector_dat needs to exist as a tibble. Can be imported with read_*()
 - define_sector_from_list(dat, join_variable_name, sector_dat, sector_info_column, sector_dat_join_variable_colsector_dat) appends the sector information in sector_dat to dat joining on join_variable_name. See ?define_sector_from_list
 - make_res(dat, period_select, region_select, sector_select, node_labels, edge_labels, font_size)  creates a RES for selected region, period and sector
+- make_graph_from_veda_df(dat) creates an igraph graph object from a veda data dataframe. If only a single period in data, the weights of the edges are set to the value of a var_fout of the commodity
 - syscost(dat) extract the system cost by region
