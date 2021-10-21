@@ -55,7 +55,7 @@ make_res <- function(dat, period_select = NULL,
     dplyr::group_by(attribute, commodity, process,
                     commodity_description, process_description) %>%
     dplyr::summarise(pv = sum(pv)) %>%
-    ungroup() %>%
+    dplyr::ungroup() %>%
     dplyr::select(attribute, commodity, process,
            commodity_description, process_description,
            pv) %>%
@@ -105,6 +105,113 @@ make_res <- function(dat, period_select = NULL,
   sn
 }
 
+#################################################################
+#' Create a igraph from a veda dataframe
+#'
+#' Use the full dataset from prep_data to create an igraph graph. Processes are
+#'  nodes and commodity flows are represented by edges.
+#'
+#' @param dat Tibble output from prep_data() \%>\% define_sector_from_*().
+#' @param node_labels Column in dat for labelling nodes.
+#' @param edge_labels Column in dat for labelling edges.
+#' @examples
+#'  data(demos_001_sector)
+#'  g <- demos_001_sector %>%
+#'     make_graph(node_labels = process_description,
+#'              edge_labels = commodity_description,
+#'              )
+#'  E(g)
+#'  E(g)$weight
+#'
+#'  # If a singe period selected, the weight is set to the var_fout pv
+#'  g_w <- demos_001_sector %>%
+#'    filter(period == 2005) %>%
+#'     make_graph(node_labels = process_description,
+#'              edge_labels = commodity_description,
+#'              )
+#'
+#'  #'  E(g_w)
+#'  E(g_w)$weight
+#'
+#' @return igraph graph object
+#' @export
+make_graph_from_veda_df <- function(dat,
+                                    node_labels = process_description,
+                                    edge_labels = commodity_description
+                                    ){
+
+  node_labels <- rlang::enquo(node_labels)
+  edge_labels <- rlang::enquo(edge_labels)
+  # RES data are rows with attributes var_fin|var_fout
+  dat <- dat %>%
+    dplyr::filter(attribute == "var_fin" | attribute == "var_fout",
+                  ) %>%
+    #sum over timeslice and vintage
+    dplyr::group_by(attribute, commodity, process, period,
+                    commodity_description, process_description) %>%
+    dplyr::summarise(pv = sum(pv)) %>%
+    dplyr::ungroup() %>%
+    dplyr::select(attribute, commodity, process, period,
+                  commodity_description, process_description,
+                  pv) %>%
+    unique()
+
+  #  commodities may lack start or end process.
+  # To show on RES, an extra node must be added.
+  # Named by commodity
+  dat <- dat %>%
+    add_missing_nodes("var_fout") %>%
+    add_missing_nodes("var_fin")
+
+
+  nodes <- make_nodes(dat, process) %>%
+    # append node description
+           dplyr::left_join(dat %>%
+                    dplyr::select(process, process_description) %>%
+                    unique()
+    )
+  # networkD3 in make_sankey uses zero indexed node numbers. Assign node_num
+  # to dat
+  dat <- assign_node_num(dat, nodes)
+
+
+  # convert the long var_fin,var_fout data to wide (source-target) edge data
+  edges <- make_edges(dat %>%
+                        dplyr::select(!!node_labels, commodity, attribute),
+                      node_col = !!node_labels,
+                      flow_col = commodity)
+  #check if only a single period is selected
+  # sum the unique numeric values to exclude NAs
+  # if only single period included, use edge_weight = pv
+  if(sum(is.numeric(unique(dat$period)))==1){
+    #assign the commodity description of the var_fout commodity to each edge
+    edges <- edges %>%
+      dplyr::left_join(dat %>%
+                       dplyr::filter(attribute == "var_fout") %>%
+                       dplyr::select(commodity, commodity_description, pv) %>%
+                       unique() %>%
+                       dplyr::rename(weight = pv)
+      )}else{
+        #as above, by set value = 1
+        #assign the commodity description of the var_fout commodity to each edge
+        edges <- edges %>%
+          dplyr::left_join(dat %>%
+                             dplyr::filter(attribute == "var_fout") %>%
+                             dplyr::select(commodity, commodity_description) %>%
+                             unique()
+          )
+
+      }
+
+
+
+
+  igraph::graph_from_data_frame(edges %>%
+                                  dplyr::select(source, target, weight),
+                                directed = T)
+}
+
+
 ################################
 
 #' Add nodes for flows without a start or end node
@@ -123,14 +230,14 @@ add_missing_nodes <- function(dat, flow_direction = "var_fout"){
     # for each commodity, check whether var_fin and var_fout are specified
     dplyr::group_by(commodity) %>%
     tidyr::nest() %>%
-    dplyr::mutate(data = map(.x = data,
+    dplyr::mutate(data = purrr::map(.x = data,
                              #return tibble after bind_rows for creation
                              # of missing row with node information
                              ~add_missing_nodes_subfunction(dat = .x,
                                             direction = flow_direction,
                                             commodity = commodity))) %>%
     tidyr::unnest(cols = c(data)) %>%
-    ungroup()
+    dplyr::ungroup()
 
 }
 
@@ -160,8 +267,8 @@ add_missing_nodes_subfunction <- function(dat, direction, commodity){
 
   # if the direction specified is in data and
   #     the direction to check is not in data
-  if(direction %in% (pull(dat, attribute)) &
-     (direction_to_check %in% pull(dat, attribute)) == F){
+  if(direction %in% (dplyr::pull(dat, attribute)) &
+     (direction_to_check %in% dplyr::pull(dat, attribute)) == F){
       # create the row to add
      row_to_add <- tibble::tibble(attribute = direction_to_check,
                          process = paste(commodity, process_suffix, sep = ""),
@@ -196,8 +303,8 @@ add_missing_nodes_subfunction <- function(dat, direction, commodity){
 make_nodes <- function(dat, node_column){
   node_column <- rlang::enquo(node_column)
   nodes <- tibble::tibble({{node_column}} :=
-                            unique(pull(dat, !!node_column))) %>%
-    dplyr::mutate(node_num = row_number() - 1)
+                            unique(dplyr::pull(dat, !!node_column))) %>%
+    dplyr::mutate(node_num = dplyr::row_number() - 1)
 
   nodes
 }
@@ -212,7 +319,7 @@ make_nodes <- function(dat, node_column){
 #' @keywords internal
 assign_node_num <- function(dat, nodes){
   dat %>%
-    dplyr::left_join(nodes %>% select(process, node_num))
+    dplyr::left_join(nodes %>% dplyr::select(process, node_num))
 }
 
 
@@ -231,7 +338,7 @@ make_edges <- function(dat, node_col, flow_col){
   node_col <- rlang::enquo(node_col)
   flow_col <- rlang::enquo(flow_col)
 
-  node_col_numeric <- is.numeric(pull(dat, !!node_col))
+  node_col_numeric <- is.numeric(dplyr::pull(dat, !!node_col))
 
 out <- dat %>%
     dplyr::select(!!flow_col, !!node_col, attribute) %>%
@@ -241,7 +348,7 @@ out <- dat %>%
                        #for all variables
                        values_fn = list(list)) %>%
     dplyr::group_by(!!flow_col) %>%
-    summarise(edges = map(.x = var_fout,
+    dplyr::summarise(edges = purrr::map(.x = var_fout,
                          .y = var_fin,
                          ~expand.grid(source =unlist(.x),
                                       target = unlist(.y)))
@@ -274,11 +381,11 @@ make_sankey <- function(nodes, edges, source, target, value,
   t <- print(node_label)
 
 
-  if(min(c(pull(edges, !!source), pull(edges, !!target)) != 0)){
+  if(min(c(dplyr::pull(edges, !!source), dplyr::pull(edges, !!target)) != 0)){
     stop("node numbers must be zero indexed")
   }
-  if((is.numeric(pull(edges, !!source)) &
-      is.numeric(pull(edges, !!target))) == F){
+  if((is.numeric(dplyr::pull(edges, !!source)) &
+      is.numeric(dplyr::pull(edges, !!target))) == F){
     stop("edge source and target must be numeric")
   }
 
@@ -300,7 +407,7 @@ make_sankey <- function(nodes, edges, source, target, value,
   # https://stackoverflow.com/questions/45635970/displaying-edge-information-in-sankey-tooltip/45918897#45918897
   if(is.null(edge_label) == F){
   # add the names back into the links data because sankeyNetwork strips it out
-      sn$x$links$name <-  pull(edges, !!edge_label)
+      sn$x$links$name <-  dplyr::pull(edges, !!edge_label)
 
       # add onRender JavaScript to set the title to the value of 'name' for each link
       sn <- htmlwidgets::onRender(
