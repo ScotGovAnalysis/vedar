@@ -164,23 +164,38 @@ Here, we use the dataset from the DemoS_007 default run (DemoS_007). This is a m
 
 We first use the option of labeling nodes by the process_description. We label the edges by the commodity_description column, and set the font_size of the node labels.
 
+Plotting the entire RES for 2020:
+
 ```{r, fig.width=7, , fig.height=5}
 data("demos_007")
 
 demos_007 <- demos_007 %>%
-  mutate(sector = "s")
+  mutate(sector = if_else(grepl("(oil)", process), "oil", "other"))
 
-res <- make_res(dat = demos_007, 
+res_all <- make_res(dat = demos_007, 
                 period_select = 2020, 
-                region_select = "reg2", 
-                sector_select = "s", 
                 node_labels = process_description, 
                 edge_labels = commodity_description, 
                 font_size = 10)
 
-res
+res_all
 
 
+
+```
+The RES can also be filtered for sectors and/or regions.
+
+```{r, fig.width=7, fig.height=5}
+
+res_filter <- make_res(dat = demos_007, 
+                period_select = 2020, 
+                sector_select = "oil", 
+                region_select = "reg1",
+                node_labels = process_description, 
+                edge_labels = commodity_description, 
+                font_size = 10)
+
+res_filter
 
 ```
 
@@ -191,15 +206,15 @@ To make the diagram less cluttered, the node label can use the process code. As 
 ```{r, fig.width=7, fig.height=5}
 
 
-res <- make_res(dat = demos_007, 
+res_prc_code <- make_res(dat = demos_007, 
                 period_select = 2015, 
                 region_select = "reg1", 
-                sector_select = "s", 
+                sector_select = "oil", 
                 node_labels = process, 
                 edge_labels = commodity_description, 
                 font_size = 10)
 
-res
+res_prc_code
 
 
 
