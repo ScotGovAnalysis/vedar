@@ -30,27 +30,47 @@ make_res <- function(dat, period_select = NULL,
                      font_size){
  node_labels <- rlang::enquo(node_labels)
  edge_labels <- rlang::enquo(edge_labels)
+
   if(length(period_select) > 1){
     stop("RES plotted for single period. Specify single period")
   }
   if(period_select %in% dat$period == F){
     stop("period_select not in period of data")
   }
-  if(sector_select %in% dat$sector == F){
+  if(is.null(sector_select) == F){
+     if(sector_select %in% dat$sector == F){
     stop("sector_select not in sector of data")
+     }
   }
-   if(region_select %in% dat$region == F){
+   if(is.null(region_select) == F){
+      if(region_select %in% dat$region == F){
      stop("region_select not in regions of data")
+      }
    }
-  if("sector" %in% names(dat) == F){
+
+  if(is.null(sector_select) == F & "sector" %in% names(dat) == F){
     stop("Data missing sector information. Define sectors")
   }
-  # RES data are rows with attributes var_fin|var_fout
+browser()
+ if(is.null(region_select)){
+   region_select <- unique(dat %>%
+                             dplyr::select(region) %>%
+                             tidyr::drop_na()) %>%
+     dplyr::pull(region)
+ }
+ if(is.null(sector_select)){
+   sector_select <- unique(dat %>%
+                              dplyr::select(sector) %>%
+                              tidyr::drop_na()) %>%
+     dplyr::pull(sector)
+ }
+
+ # RES data are rows with attributes var_fin|var_fout
   dat <- dat %>%
     dplyr::filter(attribute == "var_fin" | attribute == "var_fout",
            period == period_select,
-           sector == sector_select,
-           region == region_select) %>%
+           sector %in% sector_select,
+           region %in% region_select) %>%
     #sum over timeslice and vintage
     dplyr::group_by(attribute, commodity, process,
                     commodity_description, process_description) %>%
