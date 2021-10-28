@@ -142,6 +142,7 @@ make_graph_from_veda_df <- function(dat,
 
   node_labels <- rlang::enquo(node_labels)
   edge_labels <- rlang::enquo(edge_labels)
+
   # RES data are rows with attributes var_fin|var_fout
   dat <- dat %>%
     dplyr::filter(attribute == "var_fin" | attribute == "var_fout",
