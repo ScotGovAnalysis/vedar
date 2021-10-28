@@ -21,6 +21,7 @@ knitr::opts_chunk$set(
 library(vedar)
 library(dplyr)
 library(purrr)
+library(igraph)
 ```
 
 # Introduction
@@ -153,7 +154,26 @@ demos_001 %>%
   knitr::kable()
 ```
 
+# Representing the Reference Energy System as a graph object
+Graphs/networks are representations of connected systems. The RES can be represented as a graph with processes as nodes, and commodities as edges.
 
+`make_graph_from_veda_df()` converts the RES to an `igraph` object.
+
+```{r}
+data(demos_001_sector)
+g <- demos_001_sector %>%
+      filter(period == 2006) %>%
+      make_graph_from_veda_df(node_labels =
+                                process_description,
+                              edge_labels =
+                                commodity_description
+                              )
+print("Edge weights")
+E(g)$weight
+
+
+
+```
 
 
 # Viewing the Reference Energy System
