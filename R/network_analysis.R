@@ -137,8 +137,8 @@ browser()
 #' @examples
 #'  data(demos_001_sector)
 #'  g <- demos_001_sector %>%
-#'     make_graph(node_labels = process_description,
-#'              edge_labels = commodity_description,
+#'     make_graph_from_veda_df(node_labels = process_description,
+#'                             edge_labels = commodity_description
 #'              )
 #'  E(g)
 #'  E(g)$weight
@@ -146,11 +146,11 @@ browser()
 #'  # If a singe period selected, the weight is set to the var_fout pv
 #'  g_w <- demos_001_sector %>%
 #'    filter(period == 2005) %>%
-#'     make_graph(node_labels = process_description,
-#'              edge_labels = commodity_description,
+#'     make_graph_from_veda_df(node_labels = process_description,
+#'                             edge_labels = commodity_description
 #'              )
 #'
-#'  #'  E(g_w)
+#'  E(g_w)
 #'  E(g_w)$weight
 #'
 #' @return igraph graph object
