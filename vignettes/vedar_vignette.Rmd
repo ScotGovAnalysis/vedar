@@ -181,11 +181,11 @@ g <- demos_001_sector %>%
 
 ```
 
-Converting the RES to a graph object enables the use of the network analysis functionality of the `igraph` package. For example, we can return all the edge weights
+Converting the RES to a graph object enables the use of the network analysis functionality of the `igraph` package (https://igraph.org/r/html/latest/). For example, we can return all the edge weights
 
 
 ```{r}
-print("Edge weights")
+
 E(g)$weight
 ```
 
