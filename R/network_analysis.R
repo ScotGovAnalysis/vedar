@@ -142,6 +142,7 @@ browser()
 #'              )
 #'  E(g)
 #'  E(g)$weight
+#'  E(g)$commodity
 #'
 #'  # If a singe period selected, the weight is set to the var_fout pv
 #'  g_w <- demos_001_sector %>%
@@ -152,6 +153,7 @@ browser()
 #'
 #'  E(g_w)
 #'  E(g_w)$weight
+#'  E(g_w)$commodity
 #'
 #' @return igraph graph object
 #' @export
@@ -228,7 +230,7 @@ make_graph_from_veda_df <- function(dat,
 
 
   igraph::graph_from_data_frame(edges %>%
-                                  dplyr::select(source, target, weight),
+                                  dplyr::select(source, target, weight, commodity, commodity_description),
                                 directed = T)
 }
 
@@ -447,4 +449,21 @@ make_sankey <- function(nodes, edges, source, target, value,
 }
 
 #######
+#' Check whether a regular expression is present in a list of paths
+
+#' @param node_regex A string regular expression.
+#' @param path A list of paths
+#' @examples
+#'  dg <- demos_001_sector %>%
+#'            filter(period == 2006) %>%
+#'            make_graph_from_veda_df(node_labels = process,
+#'                          edge_labels = commodity
+#'                            )
+#'  all_mincoa1_paths <- all_simple_paths(g, from = "mincoa1")
+#'  check_in_paths("(exp)", all_min_coa1_paths)
+#' @return logical list
+#' @export
+check_in_path <- function(node_regex, path){
+  purrr::map(path, ~grepl(node_regex, names(.x)))
+}
 
