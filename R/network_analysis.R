@@ -142,6 +142,7 @@ browser()
 #'              )
 #'  E(g)
 #'  E(g)$weight
+#'  E(g)$commodity
 #'
 #'  # If a singe period selected, the weight is set to the var_fout pv
 #'  g_w <- demos_001_sector %>%
@@ -152,6 +153,7 @@ browser()
 #'
 #'  E(g_w)
 #'  E(g_w)$weight
+#'  E(g_w)$commodity
 #'
 #' @return igraph graph object
 #' @export
@@ -228,7 +230,7 @@ make_graph_from_veda_df <- function(dat,
 
 
   igraph::graph_from_data_frame(edges %>%
-                                  dplyr::select(source, target, weight),
+                                  dplyr::select(source, target, weight, commodity, commodity_description),
                                 directed = T)
 }
 
