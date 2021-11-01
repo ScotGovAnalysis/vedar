@@ -172,17 +172,33 @@ Graphs/networks are representations of connected systems. The RES can be represe
 data(demos_001_sector)
 g <- demos_001_sector %>%
       filter(period == 2006) %>%
-      make_graph_from_veda_df(node_labels =
-                                process_description,
-                              edge_labels =
-                                commodity_description
+      make_graph_from_veda_df(node_labels = process,
+                              edge_labels = commodity
                               )
-print("Edge weights")
-E(g)$weight
+
 
 
 
 ```
+
+Converting the RES to a graph object enables the use of the network analysis functionality of the `igraph` package. For example, we can return all the edge weights
+
+
+```{r}
+print("Edge weights")
+E(g)$weight
+```
+
+We can also compute all simple paths from a given node (or between two nodes if the `to = ` argument is specified)
+
+
+```{r}
+
+all_mincoa1_paths <- all_simple_paths(g, from = "mincoa1")
+all_mincoa1_paths
+
+```
+
 
 
 # Viewing the Reference Energy System
