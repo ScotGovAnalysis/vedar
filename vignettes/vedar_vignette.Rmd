@@ -220,11 +220,11 @@ coa_start_vertices <- ends(g, coa_edges)[,1]
 all_coa_paths <- all_simple_paths(g, from = unique(coa_start_vertices))
 
 #check if the string "exp" appears in the set of paths that project from coa_start_vertices
-print("check if 'exp' process appear in the set of paths")
+
 check_in_path("(exp)", all_coa_paths)
 
 #check if the string "dist" appears in the set of paths that project from coa_start_vertices
-print("check if 'dist' process appear in the set of paths")
+
 check_in_path("(dist)", all_coa_paths)
 
 
