@@ -199,6 +199,11 @@ all_mincoa1_paths
 
 ```
 
+The `vedar` function `check_in_paths` provides a means of checking whether a string expression is included in the set of paths
+
+```{r}
+check_in_path("(exp)", all_mincoa1_paths)
+```
 
 
 # Viewing the Reference Energy System
