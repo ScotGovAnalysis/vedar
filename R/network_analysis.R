@@ -447,4 +447,21 @@ make_sankey <- function(nodes, edges, source, target, value,
 }
 
 #######
+#' Check whether a regular expression is present in a list of paths
+
+#' @param node_regex A string regular expression.
+#' @param path A list of paths
+#' @examples
+#'  dg <- demos_001_sector %>%
+#'            filter(period == 2006) %>%
+#'            make_graph_from_veda_df(node_labels = process,
+#'                          edge_labels = commodity
+#'                            )
+#'  all_mincoa1_paths <- all_simple_paths(g, from = "mincoa1")
+#'  check_in_paths("(exp)", all_min_coa1_paths)
+#' @return logical list
+#' @export
+check_in_path <- function(node_regex, path){
+  purrr::map(path, ~grepl(node_regex, names(.x)))
+}
 
