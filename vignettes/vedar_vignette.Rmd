@@ -239,6 +239,8 @@ Here, we use the dataset from the DemoS_007 default run (DemoS_007). This is a m
 
 We first use the option of labeling nodes by the process_description. We label the edges by the commodity_description column, and set the font_size of the node labels.
 
+The arguments `sankey_width`, `sankey_height` and `font_size` are optional.
+
 Plotting the entire RES for 2020:
 
 ```{r, fig.width=7, , fig.height=5}
@@ -251,6 +253,8 @@ res_all <- make_res(dat = demos_007,
                 period_select = 2020, 
                 node_labels = process_description, 
                 edge_labels = commodity_description, 
+                sankey_width = 800,
+                sankey_height = 500,
                 font_size = 10)
 
 res_all

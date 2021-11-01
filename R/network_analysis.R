@@ -12,6 +12,8 @@
 #' @param region_select String. Region for plotting RES
 #' @param node_labels Column in dat for labelling nodes.
 #' @param edge_labels Column in dat for labelling edges.
+#' @param sankey_width Width (in pixels) of sankey.
+#' @param sankey_height Height (in pixels) of sankey.
 #' @param font_size Numeric. Font size for RES labels.
 #' @examples
 #'  data(demos_001_sector)
@@ -27,6 +29,8 @@ make_res <- function(dat, period_select = NULL,
                      region_select = NULL,
                      node_labels = process_description,
                      edge_labels = commodity_description,
+                     sankey_width = NULL,
+                     sankey_height = NULL,
                      font_size){
  node_labels <- rlang::enquo(node_labels)
  edge_labels <- rlang::enquo(edge_labels)
@@ -120,6 +124,8 @@ make_res <- function(dat, period_select = NULL,
                     value = value,
                     node_label = node_labels,
                     edge_label = edge_labels,
+                    sankey_width = sankey_width,
+                    sankey_height = sankey_height,
                     font_size = font_size)
 
   sn
@@ -389,12 +395,17 @@ out <- dat %>%
 #' @param source, target, value Column names in edges tibble.
 #' @param edge_label, node_label Enquoted columns in edges tibble. Used for flow
 #' tooltip
+#' @param sankey_width Width (in pixels) of sankey.
+#' @param sankey_height Height (in pixels) of sankey.
 #' @param font_size Numeric.
 #' @return NetworkD3
 #' @keywords internal
 make_sankey <- function(nodes, edges, source, target, value,
                         node_label = process_description,
-                        edge_label = NULL, font_size = 12){
+                        edge_label = NULL,
+                        sankey_width = NULL,
+                        sankey_height = NULL,
+                        font_size = 12){
   # node_label and edge_label are quosures from make_res. So no need to
   # enquo()
   source <- rlang::enquo(source)
@@ -423,7 +434,9 @@ make_sankey <- function(nodes, edges, source, target, value,
                                    rlang::ensym(value)),
                                  NodeID = rlang::as_string(
                                    rlang::ensym(node_label)),
-                                 fontSize = font_size
+                                 fontSize = font_size,
+                                 width = sankey_width,
+                                 height = sankey_height
   )
 
   # Add Custom tooltips
