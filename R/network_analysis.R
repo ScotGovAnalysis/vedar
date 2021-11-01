@@ -197,7 +197,7 @@ make_graph_from_veda_df <- function(dat,
   # to dat
   dat <- assign_node_num(dat, nodes)
 
-
+browser()
   # convert the long var_fin,var_fout data to wide (source-target) edge data
   edges <- make_edges(dat %>%
                         dplyr::select(!!node_labels, commodity, attribute),

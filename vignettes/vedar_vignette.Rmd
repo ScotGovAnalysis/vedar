@@ -172,18 +172,64 @@ Graphs/networks are representations of connected systems. The RES can be represe
 data(demos_001_sector)
 g <- demos_001_sector %>%
       filter(period == 2006) %>%
-      make_graph_from_veda_df(node_labels =
-                                process_description,
-                              edge_labels =
-                                commodity_description
+      make_graph_from_veda_df(node_labels = process,
+                              edge_labels = commodity
                               )
-print("Edge weights")
-E(g)$weight
+
 
 
 
 ```
 
+Converting the RES to a graph object enables the use of the network analysis functionality of the `igraph` package (https://igraph.org/r/html/latest/). For example, we can return all the edge weights
+
+
+```{r}
+
+E(g)$weight
+```
+
+We can compute all simple paths from a given node (or between two nodes if the `to = ` argument is specified)
+
+
+```{r}
+
+all_mincoa1_paths <- all_simple_paths(g, from = "mincoa1")
+all_mincoa1_paths
+
+```
+
+The `vedar` function `check_in_paths` provides a means of checking whether a string expression is included in the set of paths
+
+```{r}
+check_in_path("(exp)", all_mincoa1_paths)
+```
+
+We can check whether an `exp` process is included in the paths that are linked to the `coa` commodity as follows
+
+```{r}
+
+#find all coa edges
+coa_edges <- which(E(g)$commodity == "coa")
+
+#find the start vertices of the coa commodity edges
+coa_start_vertices <- ends(g, coa_edges)[,1]
+
+#find all the paths that are linked to the coa_start_vertices
+
+all_coa_paths <- all_simple_paths(g, from = unique(coa_start_vertices))
+
+#check if the string "exp" appears in the set of paths that project from coa_start_vertices
+print("check if 'exp' process appear in the set of paths")
+check_in_path("(exp)", all_coa_paths)
+
+#check if the string "dist" appears in the set of paths that project from coa_start_vertices
+print("check if 'dist' process appear in the set of paths")
+check_in_path("(dist)", all_coa_paths)
+
+
+
+```
 
 # Viewing the Reference Energy System
 The RES is a visual representation of processes and commodity flows. Vedar uses a Sankey diagram representation of the RES, with processes as nodes, and commodity flows as edges. The function `make_res()` creates the RES for a selected period, region and sector.
