@@ -51,7 +51,7 @@ make_res <- function(dat, period_select = NULL,
   if(is.null(sector_select) == F & "sector" %in% names(dat) == F){
     stop("Data missing sector information. Define sectors")
   }
-browser()
+
  if(is.null(region_select)){
    region_select <- unique(dat %>%
                              dplyr::select(region) %>%
@@ -197,7 +197,7 @@ make_graph_from_veda_df <- function(dat,
   # to dat
   dat <- assign_node_num(dat, nodes)
 
-browser()
+
   # convert the long var_fin,var_fout data to wide (source-target) edge data
   edges <- make_edges(dat %>%
                         dplyr::select(!!node_labels, commodity, attribute),
