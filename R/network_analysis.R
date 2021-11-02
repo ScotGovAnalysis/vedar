@@ -462,9 +462,9 @@ make_sankey <- function(nodes, edges, source, target, value,
 }
 
 #######
-#' Check whether a regular expression is present in a list of paths
+#' Check whether a regular expression is present in nodes (processes) in a list of paths
 
-#' @param node_regex A string regular expression.
+#' @param node_regex A string regular expression to search for in process nodes.
 #' @param path A list of paths
 #' @examples
 #'  dg <- demos_001_sector %>%
