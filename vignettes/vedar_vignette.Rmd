@@ -161,7 +161,6 @@ demos_001 %>%
   knitr::kable()
 ```
 
-
 # Representing the Reference Energy System as a graph object
 
 Graphs/networks are representations of connected systems. The RES can be represented as a graph with processes as nodes, and commodities as edges.
@@ -253,8 +252,8 @@ res_all <- make_res(dat = demos_007,
                 period_select = 2020, 
                 node_labels = process_description, 
                 edge_labels = commodity_description, 
-                sankey_width = 800,
-                sankey_height = 500,
+                sankey_width = 1000,
+                sankey_height = 1000,
                 font_size = 10)
 
 res_all
@@ -262,6 +261,8 @@ res_all
 
 
 ```
+
+
 The RES can also be filtered for sectors and/or regions.
 
 ```{r, fig.width=7, fig.height=5}
@@ -278,7 +279,7 @@ res_filter
 
 ```
 
-The flow labels are shown as tooltips when the mouse hovers over the edges. The magnitude of the flows is not included and all edges are shown with equal width. For visual representation, all demand commodities are shown to flow into a "demand commodity"_end_process.
+The flow labels are shown as tooltips when the mouse hovers over the edges. The magnitude of the flows is not included and all edges are shown with equal width. For visual representation, all demand commodities are shown to flow into a "demand commodity"_end_process. The process nodes can be moved in the vertical plane by dragging.
 
 To make the diagram less cluttered, the node label can use the process code. As an example, we select a different year and region for this example.
 
@@ -296,5 +297,17 @@ res_prc_code <- make_res(dat = demos_007,
 res_prc_code
 
 
+
+```
+
+
+# TIMES data queries
+
+The `syscost()` function returns the system cost
+
+```{r}
+
+s <- syscost(demos_001)
+s
 
 ```
