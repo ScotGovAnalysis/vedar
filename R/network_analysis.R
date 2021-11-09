@@ -41,7 +41,8 @@ make_res <- function(dat, period_select = NULL,
   if(period_select %in% dat$period == F){
     stop("period_select not in period of data")
   }
-  if(is.null(sector_select) == F){
+ browser()
+  if("sector" %in% names(dat) & is.null(sector_select) == F){
      if(sector_select %in% dat$sector == F){
     stop("sector_select not in sector of data")
      }
@@ -51,23 +52,27 @@ make_res <- function(dat, period_select = NULL,
      stop("region_select not in regions of data")
       }
    }
-
-  if(is.null(sector_select) == F & "sector" %in% names(dat) == F){
-    stop("Data missing sector information. Define sectors")
-  }
-
- if(is.null(region_select)){
+ #if region not specified, select all regions
+  if(is.null(region_select)){
    region_select <- unique(dat %>%
                              dplyr::select(region) %>%
                              tidyr::drop_na()) %>%
      dplyr::pull(region)
  }
+#if there is no sector information, append a dummy sector
+ if("sector" %in% names(dat) == F){
+   dat <- dat %>%
+     mutate(sector = "null_sector")
+ }
+ #if sector not specified, select all sectors
  if(is.null(sector_select)){
    sector_select <- unique(dat %>%
                               dplyr::select(sector) %>%
                               tidyr::drop_na()) %>%
      dplyr::pull(sector)
  }
+
+
 
  # RES data are rows with attributes var_fin|var_fout
   dat <- dat %>%
