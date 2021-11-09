@@ -31,7 +31,7 @@ make_res <- function(dat, period_select = NULL,
                      edge_labels = commodity_description,
                      sankey_width = NULL,
                      sankey_height = NULL,
-                     font_size){
+                     font_size = 10){
  node_labels <- rlang::enquo(node_labels)
  edge_labels <- rlang::enquo(edge_labels)
 
