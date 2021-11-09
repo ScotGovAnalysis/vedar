@@ -219,13 +219,16 @@ make_graph_from_veda_df <- function(dat,
   # if only single period included, use edge_weight = pv
   if(sum(is.numeric(unique(dat$period)))==1){
     #assign the commodity description of the var_fout commodity to each edge
+    browser()
     edges <- edges %>%
       dplyr::left_join(dat %>%
                        dplyr::filter(attribute == "var_fout") %>%
-                       dplyr::select(commodity, commodity_description, pv) %>%
+                       dplyr::select(commodity, !!node_labels, commodity_description, pv) %>%
                        unique() %>%
-                       dplyr::rename(weight = pv)
-      )}else{
+                       dplyr::rename(
+                         source = !!node_labels,
+                         weight = pv), by = c("commodity", "source"))
+    }else{
         #as above, by set value = 1
         #assign the commodity description of the var_fout commodity to each edge
         edges <- edges %>%
