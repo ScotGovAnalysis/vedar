@@ -41,7 +41,7 @@ make_res <- function(dat, period_select = NULL,
   if(period_select %in% dat$period == F){
     stop("period_select not in period of data")
   }
- browser()
+
   if("sector" %in% names(dat) & is.null(sector_select) == F){
      if(sector_select %in% dat$sector == F){
     stop("sector_select not in sector of data")
