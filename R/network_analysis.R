@@ -218,16 +218,72 @@ make_graph_from_veda_df <- function(dat,
   # sum the unique numeric values to exclude NAs
   # if only single period included, use edge_weight = pv
   if(sum(is.numeric(unique(dat$period)))==1){
-    #assign the commodity description of the var_fout commodity to each edge
-    browser()
+    #The assignment of weight is taken from the var_fin or var_fout, dependent
+    # on the number of sources and targets.
+
+#browser()
     edges <- edges %>%
+      #append the var_fin of each target by source
+      dplyr::group_by(source) %>%
+      dplyr::group_nest() %>%
+      dplyr::mutate(data = map(data, ~join_weights_to_edge(.x,
+                                                           dat,
+                                                           !!node_labels,
+                                                           !!edge_labels,
+                                                           direction = "var_fin") %>%
+                                 rename(var_fin = pv))) %>%
+      tidyr::unnest(cols = c(data)) %>%
+      dplyr::ungroup() %>%
+      # count the number of targets for each source and commodity
+      dplyr::group_by(source, commodity) %>%
+      dplyr::summarise(target = target,
+                       var_fin = var_fin,
+                       n_target = length(unique(target))) %>%
+      dplyr::ungroup() %>%
+      #append the var_fout of each source by target
+      dplyr::group_by(target) %>%
+      dplyr::group_nest() %>%
+      dplyr::mutate(data = map(data, ~join_weights_to_edge(.x,
+                                                           dat,
+                                                           !!node_labels,
+                                                           !!edge_labels,
+                                                           direction = "var_fout") %>%
+                                 rename(var_fout = pv))) %>%
+      tidyr::unnest(cols = c(data)) %>%
+      dplyr::ungroup() %>%
+      # count the number of sources for each target and commodity
+      dplyr::group_by(target, commodity) %>%
+      dplyr::summarise(source = source,
+                       var_fout = var_fout,
+                       var_fin = var_fin,
+                       n_target = n_target,
+                       n_source = length(unique(source))) %>%
+      dplyr::ungroup()  %>%
+      #assign weight as var_fout if there is 1 target for the source
+      # else var_fin
+      dplyr::mutate(weight = dplyr::if_else(n_target == 1,
+                                            var_fout,
+                                            var_fin
+                                            ),
+                    # if neither n_target or n_source = 1, weight = NA
+                    # HANDLE THIS IN FUTURE FIX
+                    weight = dplyr::if_else(n_source != 1 | n_target != 1,
+                                            as.numeric(NA),
+                                            weight)) %>%
       dplyr::left_join(dat %>%
-                       dplyr::filter(attribute == "var_fout") %>%
-                       dplyr::select(commodity, !!node_labels, commodity_description, pv) %>%
-                       unique() %>%
-                       dplyr::rename(
-                         source = !!node_labels,
-                         weight = pv), by = c("commodity", "source"))
+                         select(commodity, commodity_description) %>%
+                         filter(grepl("(_demand)", commodity_description) == F) %>%
+                         unique())
+
+
+
+      # dplyr::left_join(dat %>%
+      #                  dplyr::filter(attribute == "var_fout") %>%
+      #                  dplyr::select(commodity, !!node_labels, commodity_description, pv) %>%
+      #                  unique() %>%
+      #                  dplyr::rename(
+      #                    source = !!node_labels,
+      #                    weight = pv), by = c("commodity", "source"))
     }else{
         #as above, by set value = 1
         #assign the commodity description of the var_fout commodity to each edge
@@ -238,7 +294,8 @@ make_graph_from_veda_df <- function(dat,
                              unique()
           )
 
-      }
+    }
+
 
 
 
@@ -391,6 +448,18 @@ out <- dat %>%
                                       target = unlist(.y)))
     ) %>%
     tidyr::unnest(cols = edges)
+}
+###########################
+join_weights_to_edge <- function(data, dat, node_col, edge_col, direction = "var_fin"){
+  if(direction == "var_fin"){
+    col_label = "target"}
+  else{
+    col_label = "source"
+  }
+  dplyr::left_join(data, dat %>%
+                     filter(attribute == direction) %>%
+                     select({{node_col}}, {{edge_col}}, pv ) %>%
+                     rename(!!col_label := {{node_col}}))
 }
 
 ###########################
