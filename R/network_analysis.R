@@ -226,7 +226,7 @@ make_graph_from_veda_df <- function(dat,
       #append the var_fin of each target by source
       dplyr::group_by(source) %>%
       dplyr::group_nest() %>%
-      dplyr::mutate(data = map(data, ~join_weights_to_edge(.x,
+      dplyr::mutate(data = purrr::map(data, ~join_weights_to_edge(.x,
                                                            dat,
                                                            !!node_labels,
                                                            !!edge_labels,
@@ -243,12 +243,12 @@ make_graph_from_veda_df <- function(dat,
       #append the var_fout of each source by target
       dplyr::group_by(target) %>%
       dplyr::group_nest() %>%
-      dplyr::mutate(data = map(data, ~join_weights_to_edge(.x,
+      dplyr::mutate(data = purrr::map(data, ~join_weights_to_edge(.x,
                                                            dat,
                                                            !!node_labels,
                                                            !!edge_labels,
                                                            direction = "var_fout") %>%
-                                 rename(var_fout = pv))) %>%
+                                 dplyr::rename(var_fout = pv))) %>%
       tidyr::unnest(cols = c(data)) %>%
       dplyr::ungroup() %>%
       # count the number of sources for each target and commodity
@@ -258,21 +258,33 @@ make_graph_from_veda_df <- function(dat,
                        var_fin = var_fin,
                        n_target = n_target,
                        n_source = length(unique(source))) %>%
-      dplyr::ungroup()  %>%
-      #assign weight as var_fout if there is 1 target for the source
-      # else var_fin
-      dplyr::mutate(weight = dplyr::if_else(n_target == 1,
+      dplyr::ungroup()
+
+    # assign weight as var_fout (of source) if there is 1 target
+    # and var_fin (of target) if there is 1 source
+    # else weight is var_fout of source divided proportionally
+    # by var_fins of target
+    edges <- edges %>%
+      dplyr::mutate(
+        total_target_var_fin_by_source =
+          unlist(purrr::map2(source, commodity,
+                                    ~total_target_var_fin_by_source_function(
+                                      edges, .x, .y))),
+        weight = dplyr::if_else(n_target == 1,
                                             var_fout,
                                             var_fin
                                             ),
                     # if neither n_target or n_source = 1, weight = NA
-                    # HANDLE THIS IN FUTURE FIX
-                    weight = dplyr::if_else(n_source != 1 & n_target != 1,
-                                            as.numeric(NA),
-                                            weight)) %>%
+
+        weight = dplyr::if_else(n_source != 1 & n_target != 1,
+                                  unlist(purrr::pmap(list(var_fout,
+                                            var_fin,
+                                            total_target_var_fin_by_source),
+                                       ~..1 * ..2/..3)),
+                                  weight)) %>%
       dplyr::left_join(dat %>%
-                         select(commodity, commodity_description) %>%
-                         filter(grepl("(_demand)", commodity_description) == F) %>%
+                         dplyr::select(commodity, commodity_description) %>%
+                         dplyr::filter(grepl("(_demand)", commodity_description) == F) %>%
                          unique())
     }else{
         #as above, by set value = 1
@@ -470,6 +482,24 @@ join_weights_to_edge <- function(edge_data,
                      filter(attribute == direction) %>%
                      select({{node_col}}, {{edge_col}}, pv ) %>%
                      rename(!!col_label := {{node_col}}))
+}
+
+##########################
+#' Compute the sum of the var_fin over targets for each source by commodity
+#'
+#' Compute the sum of the var_fin over targets for each source by commodity
+#'
+#' @param dat Tibble of source-target edge data
+#' @param source_val String value of source
+#' @param commodity_val String value of commodity
+#' @return numeric total of var_fin over target by source, commodity
+#' @keywords internal
+total_target_var_fin_by_source_function <- function(dat,  source_val, commodity_val){
+
+   sum((dat %>%
+    filter(source == source_val,
+           commodity == commodity_val))$var_fin)
+
 }
 
 ###########################
