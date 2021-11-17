@@ -221,7 +221,7 @@ make_graph_from_veda_df <- function(dat,
     #The assignment of weight is taken from the var_fin or var_fout, dependent
     # on the number of sources and targets.
 
-#browser()
+
     edges <- edges %>%
       #append the var_fin of each target by source
       dplyr::group_by(source) %>%
@@ -267,23 +267,13 @@ make_graph_from_veda_df <- function(dat,
                                             ),
                     # if neither n_target or n_source = 1, weight = NA
                     # HANDLE THIS IN FUTURE FIX
-                    weight = dplyr::if_else(n_source != 1 | n_target != 1,
+                    weight = dplyr::if_else(n_source != 1 & n_target != 1,
                                             as.numeric(NA),
                                             weight)) %>%
       dplyr::left_join(dat %>%
                          select(commodity, commodity_description) %>%
                          filter(grepl("(_demand)", commodity_description) == F) %>%
                          unique())
-
-
-
-      # dplyr::left_join(dat %>%
-      #                  dplyr::filter(attribute == "var_fout") %>%
-      #                  dplyr::select(commodity, !!node_labels, commodity_description, pv) %>%
-      #                  unique() %>%
-      #                  dplyr::rename(
-      #                    source = !!node_labels,
-      #                    weight = pv), by = c("commodity", "source"))
     }else{
         #as above, by set value = 1
         #assign the commodity description of the var_fout commodity to each edge
@@ -449,14 +439,34 @@ out <- dat %>%
     ) %>%
     tidyr::unnest(cols = edges)
 }
-###########################
-join_weights_to_edge <- function(data, dat, node_col, edge_col, direction = "var_fin"){
+
+###################################
+#' Assign value of edge as either var_fin/var_fout
+#'
+#'  Assign value of edge as either var_fin/var_fout
+#'
+#' @param edge_data Tibble of source-target edges.
+#' @param dat Vedar data tibble in long format with var_fin, var_fout data
+#' @param node_col The column in dat to use for node information.
+#' @param edge_col The column in dat to use for edge information.
+#' @param direction String value of attribute either "var_fin" or "var_fout"
+#' @return Tibble with source-target pairs for each flow and the pv value
+#'  of the specified direction
+#' @keywords internal
+join_weights_to_edge <- function(edge_data,
+                                 dat,
+                                 node_col,
+                                 edge_col,
+                                 direction = "var_fin"){
+
   if(direction == "var_fin"){
-    col_label = "target"}
-  else{
-    col_label = "source"
+    col_label = "target"
+    }else if(direction == "var_fout"){
+      col_label = "source"
+    }else{
+    stop("direction must be specified as 'var_fin' or 'var_fout'")
   }
-  dplyr::left_join(data, dat %>%
+  dplyr::left_join(edge_data, dat %>%
                      filter(attribute == direction) %>%
                      select({{node_col}}, {{edge_col}}, pv ) %>%
                      rename(!!col_label := {{node_col}}))
