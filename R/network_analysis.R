@@ -298,8 +298,16 @@ make_graph_from_veda_df <- function(dat,
 
     }
 
-
-
+# test for approximate inequality and return error if derived edge weights
+# don't sum to var_fin or var_fout
+  if(all.equal(sum(edges$weight),
+               sum((dat %>% filter(attribute == "var_fin"))$pv)) == F){
+    stop("Weight of Edges != var_fin")
+  }
+  if(all.equal(sum(edges$weight),
+               sum((dat %>% filter(attribute == "var_fout"))$pv)) == F){
+    stop("Weight of Edges != var_fout")
+  }
 
 
   igraph::graph_from_data_frame(edges %>%
