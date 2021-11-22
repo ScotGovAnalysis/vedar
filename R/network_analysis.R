@@ -236,7 +236,6 @@ make_graph_from_veda_df <- function(dat,
     #The assignment of weight is taken from the var_fin or var_fout, dependent
     # on the number of sources and targets.
 
-
     edges <- edges %>%
       #append the var_fin of each target by source
       dplyr::group_by(source) %>%
@@ -250,30 +249,30 @@ make_graph_from_veda_df <- function(dat,
       tidyr::unnest(cols = c(data)) %>%
       dplyr::ungroup() %>%
       # count the number of targets for each source and commodity
-      dplyr::group_by(source, commodity) %>%
-      dplyr::summarise(target = target,
-                       var_fin = var_fin,
-                       n_target = length(unique(target))) %>%
-      dplyr::ungroup() %>%
+      dplyr::left_join(edges %>%
+                         dplyr::group_by(source, commodity) %>%
+                         dplyr::summarise(n_target = length(unique(target))) %>%
+                         dplyr::ungroup()) %>%
+
       #append the var_fout of each source by target
       dplyr::group_by(target) %>%
       dplyr::group_nest() %>%
-      dplyr::mutate(data = purrr::map(data, ~join_weights_to_edge(.x,
+      dplyr::mutate(data = purrr::map(data,
+                                      ~join_weights_to_edge(.x,
                                                            dat,
                                                            !!node_labels,
                                                            !!edge_labels,
-                                                           direction = "var_fout") %>%
+                                                           direction =
+                                                             "var_fout") %>%
                                  dplyr::rename(var_fout = pv))) %>%
       tidyr::unnest(cols = c(data)) %>%
       dplyr::ungroup() %>%
       # count the number of sources for each target and commodity
-      dplyr::group_by(target, commodity) %>%
-      dplyr::summarise(source = source,
-                       var_fout = var_fout,
-                       var_fin = var_fin,
-                       n_target = n_target,
-                       n_source = length(unique(source))) %>%
-      dplyr::ungroup()
+      dplyr::left_join(edges %>%
+                         dplyr::group_by(target, commodity) %>%
+                         dplyr::summarise(n_source = length(unique(source))) %>%
+                         dplyr::ungroup()
+      )
 
     # assign weight as var_fout (of source) if there is 1 target
     # and var_fin (of target) if there is 1 source
