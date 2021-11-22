@@ -184,6 +184,13 @@ make_graph_from_veda_df <- function(dat,
   node_labels <- rlang::enquo(node_labels)
   edge_labels <- rlang::enquo(edge_labels)
 
+  #handle multiple regions
+  regions <- unique(dat$region)[is.na(unique(dat$region)) == F]
+  if(length(regions) > 1){
+    stop("make_graph_from_veda_df requires data from a single region.
+         Please filter data before passing to function")
+  }
+
   # RES data are rows with attributes var_fin|var_fout
   dat <- dat %>%
     dplyr::filter(attribute == "var_fin" | attribute == "var_fout",
