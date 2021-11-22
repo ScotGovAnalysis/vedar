@@ -228,7 +228,7 @@ prep_sector_dat <- function(sector_dat){
   names(sector_dat) <- sub(" ", "_", names(sector_dat))
 
 
-  sector_dat %>%
+  sector_dat <- sector_dat %>%
     #strings to lower
     dplyr::mutate_if(is.character, stringr::str_to_lower)
 
