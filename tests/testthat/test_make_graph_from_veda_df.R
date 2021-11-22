@@ -27,3 +27,12 @@ testthat::test_that("make_graph_from_veda_df returns a list", {
   # would return string if stop conditions activated
   testthat::expect_type(g_001, "list")
 })
+
+testthat::test_that("edge attributes are c('weight',
+                    'commodity',  'commodity_description')", {
+  # would return string if stop conditions activated
+  testthat::expect_equal(edge_attr_names(g_001),
+                         c('weight',
+                           'commodity',
+                           'commodity_description'))
+})

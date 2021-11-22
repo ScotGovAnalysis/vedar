@@ -174,7 +174,7 @@ make_res <- function(dat, period_select = NULL,
 #'  E(g_w)$weight
 #'  E(g_w)$commodity
 #'
-#' @return igraph graph object
+#' @return igraph graph object. Edge attributes: commodity, commodity description
 #' @export
 make_graph_from_veda_df <- function(dat,
                                     node_labels = process_description,
