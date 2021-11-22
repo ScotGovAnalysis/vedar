@@ -140,7 +140,15 @@ make_res <- function(dat, period_select = NULL,
 #' Create a igraph from a veda dataframe
 #'
 #' Use the full dataset from prep_data to create an igraph graph. Processes are
-#'  nodes and commodity flows are represented by edges.
+#' nodes and commodity flows are represented by edges. When
+#' the data is for a single year, the edge weights are the
+#' values are determined by the var_fin and var_fout variables
+#' of the given process/commodity. Note that since TIMES does
+#' not give information of how a given var_fout is split over
+#' downstream commodities, an assumption has to be made. Here,
+#' the weight is assigned in proportion to the ratio of var_fin
+#' variables of downstream commodities linked to the originating
+#' process.
 #'
 #' @param dat Tibble output from prep_data() \%>\% define_sector_from_*().
 #' @param node_labels Column in dat for labelling nodes.
@@ -166,7 +174,7 @@ make_res <- function(dat, period_select = NULL,
 #'  E(g_w)$weight
 #'  E(g_w)$commodity
 #'
-#' @return igraph graph object
+#' @return igraph graph object. Edge attributes: commodity, commodity description
 #' @export
 make_graph_from_veda_df <- function(dat,
                                     node_labels = process_description,

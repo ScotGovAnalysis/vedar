@@ -165,7 +165,7 @@ demos_001 %>%
 
 Graphs/networks are representations of connected systems. The RES can be represented as a graph with processes as nodes, and commodities as edges.
 
-`make_graph_from_veda_df()` converts the RES to an `igraph` object. When the data is for a single year, the edge weights are the value of the var_fout attribute for the given process/commodity.
+`make_graph_from_veda_df()` converts the RES to an `igraph` object. When the data is for a single year, the edge weights are the values are determined by the var_fin and var_fout variables of the given process/commodity. Note that since TIMES does not give information of how a given var_fout is split over downstream commodities, an assumption has to be made. Here, the weight is assigned in proportion to the ratio of var_fin variables of downstream commodities linked to the originating process.
 
 ```{r}
 data(demos_001_sector)
