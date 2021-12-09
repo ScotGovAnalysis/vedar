@@ -100,9 +100,9 @@ make_res <- function(dat, period_select = NULL,
 
   nodes <- make_nodes(dat, process) %>%
     # append node description
-    left_join(dat %>%
-                select(process, process_description) %>%
-                unique()
+    dplyr::left_join(dat %>%
+                dplyr::select(process, process_description) %>%
+                dplyr::distinct()
                 )
   # networkD3 in make_sankey uses zero indexed node numbers. Assign node_num
   # to dat
