@@ -1,4 +1,3 @@
-#' Create a RES sankey diagram with data for a specified sector and period
 #'
 #' Use the full dataset from prep_data %>% define_sector_*() to create a sankey
 #' diagram linking processes with commodities shown as flows. Flow magnitude
@@ -344,6 +343,7 @@ make_graph_from_veda_df <- function(dat,
 #' @return Input tibble with missing nodes appended.
 #' @keywords internal
 add_missing_nodes <- function(dat, flow_direction = "var_fout"){
+  #browser()
   dat %>%
     # for each commodity, check whether var_fin and var_fout are specified
     dplyr::group_by(commodity) %>%
@@ -419,6 +419,7 @@ add_missing_nodes_subfunction <- function(dat, direction, commodity){
 #' @return Tibble with node_column and node_num.
 #' @keywords internal
 make_nodes <- function(dat, node_column){
+  
   node_column <- rlang::enquo(node_column)
   nodes <- tibble::tibble({{node_column}} :=
                             unique(dplyr::pull(dat, !!node_column))) %>%
@@ -455,7 +456,7 @@ assign_node_num <- function(dat, nodes){
 make_edges <- function(dat, node_col, flow_col){
   node_col <- rlang::enquo(node_col)
   flow_col <- rlang::enquo(flow_col)
-
+#browser()
   node_col_numeric <- is.numeric(dplyr::pull(dat, !!node_col))
 
 out <- dat %>%
@@ -471,6 +472,7 @@ out <- dat %>%
                          ~expand.grid(source =unlist(.x),
                                       target = unlist(.y)))
     ) %>%
+    dplyr::filter(map(edges, ~nrow(.x))>1) %>% 
     tidyr::unnest(cols = edges)
 }
 
