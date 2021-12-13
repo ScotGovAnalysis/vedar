@@ -62,7 +62,7 @@ make_res <- function(dat, period_select = NULL,
 #if there is no sector information, append a dummy sector
  if("sector" %in% names(dat) == F){
    dat <- dat %>%
-     mutate(sector = "null_sector")
+     dplyr::mutate(sector = "null_sector")
  }
  #if sector not specified, select all sectors
  if(is.null(sector_select)){
