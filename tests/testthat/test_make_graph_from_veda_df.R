@@ -2,7 +2,7 @@
 load("../../data/demos_001_sector.Rda")
 
 g_001 <- demos_001_sector %>%
-  filter(period == 2006) %>%
+  dplyr::filter(period == 2006) %>%
   make_graph_from_veda_df(node_labels = process,
                           edge_labels = commodity
   )
