@@ -372,7 +372,7 @@ add_missing_nodes_subfunction <- function(dat, direction, commodity){
 #' @return Tibble with node_column and node_num.
 #' @keywords internal
 make_nodes <- function(dat, node_column){
-  
+
   node_column <- rlang::enquo(node_column)
   nodes <- tibble::tibble({{node_column}} :=
                             unique(dplyr::pull(dat, !!node_column))) %>%
@@ -431,7 +431,7 @@ out <- dat %>%
                          ~expand.grid(source =unlist(.x),
                                       target = unlist(.y)))
     ) %>%
-    dplyr::filter(map(edges, ~nrow(.x))>1) %>% 
+    dplyr::filter(map(edges, ~nrow(.x))>=1) %>%
     tidyr::unnest(cols = edges)
 }
 
