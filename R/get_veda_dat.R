@@ -319,7 +319,10 @@ vd_structure_match_expected <- function(filename, filetype){
     vd_reference_structure <- .vd_reference_structure[[1]]
     vd_header <- scan(filename, skip = 2, what = character(),  nmax = 35 )
     #check vd file structure matches reference structure
-    identical(vd_header, vd_reference_structure)
+    structure_match <- purrr::map2(vd_header, vd_reference_structure, ~identical(.x, .y))
+    #line 20 specifies the field size. This might differ depending on different versions of GAMS. So check if all other lines in structure match == TRUE
+    sum(unlist(structure_match)[-20]) ==
+      length(vd_reference_structure)-1
   }else{
 
     vd_reference_file <- .vd_reference_structure[[filetype]]
