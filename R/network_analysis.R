@@ -230,7 +230,7 @@ make_graph_from_veda_df <- function(dat,
                       node_col = !!node_labels,
                       flow_col = commodity)
 
-  browser()
+
   #check if only a single period is selected
   # sum the unique numeric values to exclude NAs
   # if only single period included, use edge_weight = pv
