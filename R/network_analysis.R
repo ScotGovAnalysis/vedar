@@ -248,7 +248,7 @@ make_graph_from_veda_df <- function(dat,
                                                            !!node_labels,
                                                            !!edge_labels,
                                                            direction = "var_fin") %>%
-                                 rename(var_fin = pv))) %>%
+                                 dplyr::rename(var_fin = pv))) %>%
       tidyr::unnest(cols = c(data)) %>%
       dplyr::ungroup() %>%
       # count the number of targets for each source and commodity
@@ -309,11 +309,11 @@ make_graph_from_veda_df <- function(dat,
       # test for approximate inequality and return error if derived edge weights
       # don't sum to var_fin or var_fout
       if(all.equal(sum(edges$weight),
-                   sum((dat %>% filter(attribute == "var_fin"))$pv)) == F){
+                   sum((dat %>% dplyr::filter(attribute == "var_fin"))$pv)) == F){
         stop("Weight of Edges != var_fin")
       }
       if(all.equal(sum(edges$weight),
-                   sum((dat %>% filter(attribute == "var_fout"))$pv)) == F){
+                   sum((dat %>% dplyr::filter(attribute == "var_fout"))$pv)) == F){
         stop("Weight of Edges != var_fout")
       }
 
@@ -460,7 +460,7 @@ assign_node_num <- function(dat, nodes, col_to_assign_num){
   dat %>%
     dplyr::left_join(nodes %>%
                        dplyr::select(process, node_num) %>%
-                       rename(!!col_to_assign_num := process))
+                       dplyr::rename(!!col_to_assign_num := process))
 }
 
 
@@ -524,9 +524,9 @@ join_weights_to_edge <- function(edge_data,
     stop("direction must be specified as 'var_fin' or 'var_fout'")
   }
   dplyr::left_join(edge_data, dat %>%
-                     filter(attribute == direction) %>%
-                     select({{node_col}}, {{edge_col}}, pv ) %>%
-                     rename(!!col_label := {{node_col}}))
+                     dplyr::filter(attribute == direction) %>%
+                     dplyr::select({{node_col}}, {{edge_col}}, pv ) %>%
+                     dplyr::rename(!!col_label := {{node_col}}))
 }
 
 ##########################
@@ -542,7 +542,7 @@ join_weights_to_edge <- function(edge_data,
 total_target_var_fin_by_source_function <- function(dat,  source_val, commodity_val){
 
    sum((dat %>%
-    filter(source == source_val,
+    dplyr::filter(source == source_val,
            commodity == commodity_val))$var_fin)
 
 }
