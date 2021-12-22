@@ -24,110 +24,48 @@
 #'              font_size = 11)
 #' @return NetworkD3 Sankey object
 #' @export
-make_res <- function(dat, period_select = NULL,
-                     sector_select = NULL,
-                     region_select = NULL,
-                     node_labels = process_description,
-                     edge_labels = commodity_description,
-                     sankey_width = NULL,
-                     sankey_height = NULL,
-                     font_size = 10){
- node_labels <- rlang::enquo(node_labels)
- edge_labels <- rlang::enquo(edge_labels)
+make_res <- function(dat,
+                       node_labels = process_description,
+                       edge_labels = commodity_description,
+                       sankey_width = NULL,
+                       sankey_height = NULL,
+                       font_size = 10,
+                       use_weights = T){
+  node_labels <- rlang::enquo(node_labels)
+  edge_labels <- rlang::enquo(edge_labels)
 
-  if(length(period_select) > 1){
-    stop("RES plotted for single period. Specify single period")
+  g <- make_graph_from_veda_df(dat = dat,
+                               node_labels = !!node_labels,
+                               edge_labels = !!edge_labels)
+  # extract the vertex data from graph
+  vertices <- igraph::as_data_frame(g, what = "vertices") %>%
+    #assign_node_num() which is called below requires
+    #    a column "process"
+    dplyr::rename(process = name) %>%
+    #assign zero-indexed node number
+    dplyr::mutate(node_num = dplyr::row_number() - 1)
+
+  # sankey requires edge data to be zero-indexed node numbers
+  edges <- igraph::as_data_frame(g, what = "edges") %>%
+    # assign node number to "from" nodes
+    assign_node_num(vertices, col_to_assign_num = from) %>%
+    #replace the character "from" node by the node_num
+    dplyr::select(-from) %>%
+    dplyr::rename(from = node_num) %>%
+    #repeat for the "to" node
+    assign_node_num(vertices, col_to_assign_num = to) %>%
+    dplyr::select(-to) %>%
+    dplyr::rename(to = node_num)
+  if(use_weights == F){
+    edges$weight = 1
   }
-  if(period_select %in% dat$period == F){
-    stop("period_select not in period of data")
-  }
 
-  if("sector" %in% names(dat) & is.null(sector_select) == F){
-     if(sector_select %in% dat$sector == F){
-    stop("sector_select not in sector of data")
-     }
-  }
-   if(is.null(region_select) == F){
-      if(region_select %in% dat$region == F){
-     stop("region_select not in regions of data")
-      }
-   }
- #if region not specified, select all regions
-  if(is.null(region_select)){
-   region_select <- unique(dat %>%
-                             dplyr::select(region) %>%
-                             tidyr::drop_na()) %>%
-     dplyr::pull(region)
- }
-#if there is no sector information, append a dummy sector
- if("sector" %in% names(dat) == F){
-   dat <- dat %>%
-     dplyr::mutate(sector = "null_sector")
- }
- #if sector not specified, select all sectors
- if(is.null(sector_select)){
-   sector_select <- unique(dat %>%
-                              dplyr::select(sector) %>%
-                              tidyr::drop_na()) %>%
-     dplyr::pull(sector)
- }
-
-
-
- # RES data are rows with attributes var_fin|var_fout
-  dat <- dat %>%
-    dplyr::filter(attribute == "var_fin" | attribute == "var_fout",
-           period == period_select,
-           sector %in% sector_select,
-           region %in% region_select) %>%
-    #sum over timeslice and vintage
-    dplyr::group_by(attribute, commodity, process,
-                    commodity_description, process_description) %>%
-    dplyr::summarise(pv = sum(pv)) %>%
-    dplyr::ungroup() %>%
-    dplyr::select(attribute, commodity, process,
-           commodity_description, process_description,
-           pv) %>%
-    unique()
-
-  #  commodities may lack start or end process.
-  # To show on RES, an extra node must be added.
-  # Named by commodity
-  dat <- dat %>%
-    add_missing_nodes("var_fout") %>%
-    add_missing_nodes("var_fin")
-
-
-  nodes <- make_nodes(dat, process) %>%
-    # append node description
-    dplyr::left_join(dat %>%
-                dplyr::select(process, process_description) %>%
-                dplyr::distinct()
-                )
-  # networkD3 in make_sankey uses zero indexed node numbers. Assign node_num
-  # to dat by process
-  dat <- assign_node_num(dat, nodes, col_to_assign_num = process)
-
-
-  # convert the long var_fin,var_fout data to wide (source-target) edge data
-  edges <- make_edges(dat %>%
-                        dplyr::select(node_num, commodity, attribute),
-                     node_col = node_num,
-                     flow_col = commodity) %>%
-    #assign the commodity description of the var_fout commodity to each edge
-    dplyr::left_join(dat %>%
-                dplyr::filter(attribute == "var_fout") %>%
-                dplyr::select(commodity, commodity_description) %>%
-                unique()
-    ) %>%
-    # at present, the RES only plots connecitions. All values = 1
-    dplyr::mutate(value = 1)
-
-  sn <- make_sankey(nodes, edges,
-                    source = source,
-                    target = target,
-                    value = value,
-                    node_label = node_labels,
+  sn <- make_sankey(vertices, edges,
+                    source = from,
+                    target = to,
+                    value = weight,
+                    node_label = names(vertices %>%
+                                         dplyr::select(-node_num)),
                     edge_label = edge_labels,
                     sankey_width = sankey_width,
                     sankey_height = sankey_height,

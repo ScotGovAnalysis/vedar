@@ -238,7 +238,9 @@ Here, we use the dataset from the DemoS_007 default run (DemoS_007). This is a m
 
 We first use the option of labeling nodes by the process_description. We label the edges by the commodity_description column, and set the font_size of the node labels.
 
-The arguments `sankey_width`, `sankey_height` and `font_size` are optional.
+The arguments `sankey_width`, `sankey_height` and `font_size` are optional. 
+
+The function can only be used for data for a single region, so data should be prefiltered.
 
 Plotting the entire RES for 2020:
 
@@ -246,10 +248,11 @@ Plotting the entire RES for 2020:
 data("demos_007")
 
 demos_007 <- demos_007 %>%
+  filter(region == "reg1", 
+         period == 2020) %>% 
   mutate(sector = if_else(grepl("(oil)", process), "oil", "other"))
 
-res_all <- make_res(dat = demos_007, 
-                period_select = 2020, 
+res_all <- make_res(dat = demos_007 , 
                 node_labels = process_description, 
                 edge_labels = commodity_description, 
                 sankey_width = 1000,
@@ -261,16 +264,14 @@ res_all
 
 
 ```
+The flow labels are shown as tooltips when the mouse hovers over the edges. The magnitude of the flows is not included and all edges are shown with equal width. For visual representation, all demand commodities are shown to flow into a "demand commodity"_end_process. The process nodes can be moved in the vertical plane by dragging.
 
-
-The RES can also be filtered for sectors and/or regions.
+To create a RES for data filtered on any of the columns in the data, the data can be filtered using dplyr functions. Here, we filter for sector.
 
 ```{r, fig.width=7, fig.height=5}
 
-res_filter <- make_res(dat = demos_007, 
-                period_select = 2020, 
-                sector_select = "oil", 
-                region_select = "reg1",
+res_filter <- make_res(dat = demos_007 %>% 
+                         filter(sector == "oil"),
                 node_labels = process_description, 
                 edge_labels = commodity_description, 
                 font_size = 10)
@@ -279,26 +280,75 @@ res_filter
 
 ```
 
-The flow labels are shown as tooltips when the mouse hovers over the edges. The magnitude of the flows is not included and all edges are shown with equal width. For visual representation, all demand commodities are shown to flow into a "demand commodity"_end_process. The process nodes can be moved in the vertical plane by dragging.
+The data can also be filtered on sets. Since sets are lists, this needs to use the `purrr::map_*()`(https://purrr.tidyverse.org/reference/map.html) functions in the filter call. Here, we filter the data to that in which the string "nrg" appears in the commodity set.
 
-To make the diagram less cluttered, the node label can use the process code. As an example, we select a different year and region for this example.
+
+```{r}
+
+res_filter_set <- make_res(dat = demos_007 %>% 
+                         filter(map_lgl(commodity_set, 
+                                        ~("nrg" %in% .x))),
+                node_labels = process_description, 
+                edge_labels = commodity_description, 
+                font_size = 10)
+
+res_filter_set
+
+
+```
+
+To make the diagram less cluttered, the node label can use the process code. 
 
 ```{r, fig.width=7, fig.height=5}
 
 
-res_prc_code <- make_res(dat = demos_007, 
-                period_select = 2015, 
-                region_select = "reg1", 
-                sector_select = "oil", 
+res_prc_code <- make_res(dat = demos_007 %>% 
+                         filter(map_lgl(commodity_set, 
+                                        ~("nrg" %in% .x))),
                 node_labels = process, 
                 edge_labels = commodity_description, 
                 font_size = 10)
+
 
 res_prc_code
 
 
 
 ```
+
+the Sankey uses unitary magnitudes if the data includes more than a single period, or if `use_weights = F`. This is done in the two chunks below.
+
+```{r}
+#reload the data to include all periods
+data("demos_007")
+
+res_all_unitary_all <- make_res(dat = demos_007 %>% 
+                              filter(region == "reg1"), 
+                node_labels = process_description, 
+                edge_labels = commodity_description, 
+                sankey_width = 1000,
+                sankey_height = 1000,
+                font_size = 10)
+
+res_all_unitary_all
+```
+
+
+```{r}
+
+res_all_unitary_2020 <- make_res(dat = demos_007 %>% 
+                              filter(region == "reg1", 
+                                     period == 2020), 
+                node_labels = process_description, 
+                edge_labels = commodity_description, 
+                sankey_width = 1000,
+                sankey_height = 1000,
+                font_size = 10, 
+                use_weights = F)
+
+res_all_unitary_2020
+```
+
 # Combining graph queries to create a RES
 
 The `make_res_from_graph()` function creates a Sankey representation of the the res from an igraph object. Edge thickness represents the graph edge weights.
