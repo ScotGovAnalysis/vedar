@@ -299,8 +299,41 @@ res_prc_code
 
 
 ```
+# Combining graph queries to create a RES
+
+The `make_res_from_graph()` function creates a Sankey representation of the the res from an igraph object. Edge thickness represents the graph edge weights.
+
+We first do this for the graph object `g` created from demos_001. The edge_labels argument specifies the edge attribute used to label the edges. The node labels are taken from the graph object. The sankey_height and sankey_width arguments are specified in pixels. 
 
 
+```{r}
+res_graph_001 <- make_res_from_graph(g, 
+                                     edge_labels =
+                                       commodity_description, 
+                                     sankey_height = 400, 
+                                     sankey_width = 550)
+
+res_graph_001
+
+
+
+```
+
+Using a graph representation to create a Sankey allows us to use subgraphs as input. For example, the subgraph of `g` which contains all paths from mincoa1 can be created as follows
+
+
+```{r}
+# get the vertices in the paths of interest
+vert <- unique(names(unlist(all_mincoa1_paths)))
+
+#create the subgraph
+sub_g <- induced_subgraph(g, vert)
+
+# make res from sub_g
+res_sub_graph_001 <- make_res_from_graph(sub_g)
+res_sub_graph_001
+
+```
 # TIMES data queries
 
 The `syscost()` function returns the system cost

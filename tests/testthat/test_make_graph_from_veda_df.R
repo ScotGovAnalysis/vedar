@@ -1,3 +1,4 @@
+library(igraph)
 #demos_001 has many to many edges so used for tests
 load("../../data/demos_001_sector.Rda")
 

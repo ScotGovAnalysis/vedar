@@ -105,8 +105,8 @@ make_res <- function(dat, period_select = NULL,
                 dplyr::distinct()
                 )
   # networkD3 in make_sankey uses zero indexed node numbers. Assign node_num
-  # to dat
-  dat <- assign_node_num(dat, nodes)
+  # to dat by process
+  dat <- assign_node_num(dat, nodes, col_to_assign_num = process)
 
 
   # convert the long var_fin,var_fout data to wide (source-target) edge data
@@ -221,7 +221,7 @@ make_graph_from_veda_df <- function(dat,
     )
   # networkD3 in make_sankey uses zero indexed node numbers. Assign node_num
   # to dat
-  dat <- assign_node_num(dat, nodes)
+  dat <- assign_node_num(dat, nodes, col_to_assign_num = process)
 
 
   # convert the long var_fin,var_fout data to wide (source-target) edge data
@@ -229,10 +229,13 @@ make_graph_from_veda_df <- function(dat,
                         dplyr::select(!!node_labels, commodity, attribute),
                       node_col = !!node_labels,
                       flow_col = commodity)
+
+
   #check if only a single period is selected
   # sum the unique numeric values to exclude NAs
   # if only single period included, use edge_weight = pv
-  if(sum(is.numeric(unique(dat$period)))==1){
+  periods <- unique(dat$period)
+  if(length(periods[is.na(periods) == F])==1){
     #The assignment of weight is taken from the var_fin or var_fout, dependent
     # on the number of sources and targets.
 
@@ -245,7 +248,7 @@ make_graph_from_veda_df <- function(dat,
                                                            !!node_labels,
                                                            !!edge_labels,
                                                            direction = "var_fin") %>%
-                                 rename(var_fin = pv))) %>%
+                                 dplyr::rename(var_fin = pv))) %>%
       tidyr::unnest(cols = c(data)) %>%
       dplyr::ungroup() %>%
       # count the number of targets for each source and commodity
@@ -295,11 +298,25 @@ make_graph_from_veda_df <- function(dat,
                                             var_fin,
                                             total_target_var_fin_by_source),
                                        ~..1 * ..2/..3)),
-                                  weight)) %>%
+                                  weight),
+        weight = dplyr::if_else(is.na(var_fout), var_fin, weight),
+        weight = dplyr::if_else(is.na(var_fin), var_fout, weight)) %>%
       dplyr::left_join(dat %>%
                          dplyr::select(commodity, commodity_description) %>%
                          dplyr::filter(grepl("(_demand)", commodity_description) == F) %>%
                          unique())
+
+      # test for approximate inequality and return error if derived edge weights
+      # don't sum to var_fin or var_fout
+      if(all.equal(sum(edges$weight),
+                   sum((dat %>% dplyr::filter(attribute == "var_fin"))$pv)) == F){
+        stop("Weight of Edges != var_fin")
+      }
+      if(all.equal(sum(edges$weight),
+                   sum((dat %>% dplyr::filter(attribute == "var_fout"))$pv)) == F){
+        stop("Weight of Edges != var_fout")
+      }
+
     }else{
         #as above, by set value = 1
         #assign the commodity description of the var_fout commodity to each edge
@@ -308,24 +325,24 @@ make_graph_from_veda_df <- function(dat,
                              dplyr::filter(attribute == "var_fout") %>%
                              dplyr::select(commodity, commodity_description) %>%
                              unique()
-          )
+          ) %>%
+          mutate(weight = 1)
 
     }
 
-# test for approximate inequality and return error if derived edge weights
-# don't sum to var_fin or var_fout
-  if(all.equal(sum(edges$weight),
-               sum((dat %>% filter(attribute == "var_fin"))$pv)) == F){
-    stop("Weight of Edges != var_fin")
-  }
-  if(all.equal(sum(edges$weight),
-               sum((dat %>% filter(attribute == "var_fout"))$pv)) == F){
-    stop("Weight of Edges != var_fout")
-  }
 
 
   igraph::graph_from_data_frame(edges %>%
-                                  dplyr::select(source, target, weight, commodity, commodity_description),
+                                  dplyr::select(source,
+                                                target,
+                                                weight,
+                                                commodity,
+                                                commodity_description
+                                                ) %>%
+                                  #if several periods have been
+                                  # included, edges will be
+                                  # duplicated
+                                  dplyr::distinct(),
                                 directed = T)
 }
 
@@ -394,8 +411,8 @@ add_missing_nodes_subfunction <- function(dat, direction, commodity){
                                                      process_suffix, sep = ""),
                          #pv is the sum of flows in the opposite direction
                          pv = sum(dat$pv),
-                         commodity_description = paste(commodity,
-                                                       "_demand", sep = "")
+                         commodity_description =
+                           paste(commodity,"_demand", sep = "")
     )
      # return the dat with extra row
       dat %>%
@@ -433,11 +450,17 @@ make_nodes <- function(dat, node_column){
 #'
 #' @param dat Tibble - long.
 #' @param nodes Tibble output of make_nodes.
+#' @param col_to_assign_num Column in dat to use for
+#'          assigning node number
 #' @return Input tibble with node_num appended
 #' @keywords internal
-assign_node_num <- function(dat, nodes){
+
+assign_node_num <- function(dat, nodes, col_to_assign_num){
+  col_to_assign_num <- rlang::enquo(col_to_assign_num)
   dat %>%
-    dplyr::left_join(nodes %>% dplyr::select(process, node_num))
+    dplyr::left_join(nodes %>%
+                       dplyr::select(process, node_num) %>%
+                       dplyr::rename(!!col_to_assign_num := process))
 }
 
 
@@ -501,9 +524,9 @@ join_weights_to_edge <- function(edge_data,
     stop("direction must be specified as 'var_fin' or 'var_fout'")
   }
   dplyr::left_join(edge_data, dat %>%
-                     filter(attribute == direction) %>%
-                     select({{node_col}}, {{edge_col}}, pv ) %>%
-                     rename(!!col_label := {{node_col}}))
+                     dplyr::filter(attribute == direction) %>%
+                     dplyr::select({{node_col}}, {{edge_col}}, pv ) %>%
+                     dplyr::rename(!!col_label := {{node_col}}))
 }
 
 ##########################
@@ -519,7 +542,7 @@ join_weights_to_edge <- function(edge_data,
 total_target_var_fin_by_source_function <- function(dat,  source_val, commodity_val){
 
    sum((dat %>%
-    filter(source == source_val,
+    dplyr::filter(source == source_val,
            commodity == commodity_val))$var_fin)
 
 }
@@ -619,3 +642,70 @@ check_in_path <- function(node_regex, path){
   purrr::map(path, ~grepl(node_regex, names(.x)))
 }
 
+
+################################
+#' Create a RES sankey diagram from an igraph object created by make_graph_from_veda_df()
+#'
+#' Use a graph made from make_graph_from_veda_df() to create a sankey
+#' diagram linking processes with commodities shown as flows.
+#'
+#' @param g igraph representation of network with processes as nodes and commodities as edges
+#' @param edge_labels Edge attribute used for labelling edges.
+#' @param sankey_width Width (in pixels) of sankey.
+#' @param sankey_height Height (in pixels) of sankey.
+#' @param font_size Numeric. Font size for RES labels.
+#' @examples
+#'  data(demos_001_sector)
+#'  demos_001_sector %>%
+#'  filter(period == 2006) %>%
+#'  make_graph_from_veda_df() %>%
+#'     make_res_from_graph(
+#'              edge_labels = commodity_description,
+#'              font_size = 11)
+#' @return NetworkD3 Sankey object
+#' @export
+make_res_from_graph <- function(g,
+                                edge_labels =
+                                  commodity_description,
+                                sankey_width = NULL,
+                                sankey_height = NULL,
+                                font_size = 10){
+  #node_labels <- rlang::enquo(node_labels)
+  edge_labels <- rlang::enquo(edge_labels)
+
+# extract the vertex data from graph
+  vertices <-
+    igraph::as_data_frame(g, what = "vertices") %>%
+    #assign_node_num() which is called below requires
+    #    a column "process"
+    dplyr::rename(process = name) %>%
+    #assign zero-indexed node number
+    dplyr::mutate(node_num = dplyr::row_number() - 1)
+
+  # sankey requires edge data to be zero-indexed node numbers
+  edges <- igraph::as_data_frame(g, what = "edges") %>%
+    # assign node number to "from" nodes
+    assign_node_num(vertices, col_to_assign_num = from) %>%
+    #replace the character "from" node by the node_num
+    dplyr::select(-from) %>%
+    dplyr::rename(from = node_num) %>%
+    #repeat for the "to" node
+    assign_node_num(vertices, col_to_assign_num = to) %>%
+    dplyr::select(-to) %>%
+    dplyr::rename(to = node_num)
+
+
+  sn <- make_sankey(vertices, edges,
+                    source = from,
+                    target = to,
+                    value = weight,
+                    node_label =
+                      names(vertices %>%
+                               dplyr::select(-node_num)),
+                    edge_label = edge_labels,
+                    sankey_width = sankey_width,
+                    sankey_height = sankey_height,
+                    font_size = font_size)
+
+  sn
+}
