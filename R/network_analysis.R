@@ -7,14 +7,12 @@
 #' This will be changed to an option
 #'
 #' @param dat Tibble output from prep_data() \%>\% define_sector_from_*().
-#' @param period_select Numeric. Period for plotting RES.
-#' @param sector_select String. Sector for plotting RES.
-#' @param region_select String. Region for plotting RES
 #' @param node_labels Column in dat for labelling nodes.
 #' @param edge_labels Column in dat for labelling edges.
 #' @param sankey_width Width (in pixels) of sankey.
 #' @param sankey_height Height (in pixels) of sankey.
 #' @param font_size Numeric. Font size for RES labels.
+#' @param use_weights Logical. Whether to represent edge weights in Sankey that contains data for a single period. For data containing more than 1 period, magnitudes are unitary.
 #' @examples
 #'  data(demos_001_sector)
 #'  demos_001_sector %>%
