@@ -650,7 +650,7 @@ check_in_path <- function(node_regex, path){
 #' diagram linking processes with commodities shown as flows.
 #'
 #' @param g igraph representation of network with processes as nodes and commodities as edges
-#' @param edge_labels Column in dat for labelling edges.
+#' @param edge_labels Edge attribute used for labelling edges.
 #' @param sankey_width Width (in pixels) of sankey.
 #' @param sankey_height Height (in pixels) of sankey.
 #' @param font_size Numeric. Font size for RES labels.
@@ -658,14 +658,15 @@ check_in_path <- function(node_regex, path){
 #'  data(demos_001_sector)
 #'  demos_001_sector %>%
 #'  filter(period == 2006) %>%
-#'  make_graph_from_veda_df()
+#'  make_graph_from_veda_df() %>%
 #'     make_res_from_graph(
 #'              edge_labels = commodity_description,
 #'              font_size = 11)
 #' @return NetworkD3 Sankey object
 #' @export
 make_res_from_graph <- function(g,
-                                edge_labels = commodity_description,
+                                edge_labels =
+                                  commodity_description,
                                 sankey_width = NULL,
                                 sankey_height = NULL,
                                 font_size = 10){
@@ -673,7 +674,8 @@ make_res_from_graph <- function(g,
   edge_labels <- rlang::enquo(edge_labels)
 
 # extract the vertex data from graph
-  vertices <- igraph::as_data_frame(g, what = "vertices") %>%
+  vertices <-
+    igraph::as_data_frame(g, what = "vertices") %>%
     #assign_node_num() which is called below requires
     #    a column "process"
     dplyr::rename(process = name) %>%
@@ -697,8 +699,9 @@ make_res_from_graph <- function(g,
                     source = from,
                     target = to,
                     value = weight,
-                    node_label = names(vertices %>%
-                                         dplyr::select(-node_num)),
+                    node_label =
+                      names(vertices %>%
+                               dplyr::select(-node_num)),
                     edge_label = edge_labels,
                     sankey_width = sankey_width,
                     sankey_height = sankey_height,
