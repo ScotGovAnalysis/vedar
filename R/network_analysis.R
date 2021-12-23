@@ -21,6 +21,11 @@
 #'              edge_labels = commodity_description,
 #'              font_size = 11)
 #'
+#'  data(demos_001_vdt)
+#'  make_res(demos_001_vdt %>%
+#'              filter(region == "reg1"),
+#'          input_data_type = "vdt")
+#'
 #' @return NetworkD3 Sankey object
 #' @export
 make_res <- function(dat,
@@ -632,6 +637,12 @@ check_in_path <- function(node_regex, path){
 #'     make_res_from_graph(
 #'              edge_labels = commodity_description,
 #'              font_size = 11)
+#'
+#'  data(demos_007_vdt)
+#'  demos_007_vdt %>%
+#'      filter(region == "reg1") %>%
+#'      make_graph_from_veda_df(input_data_type = "vdt")
+#'
 #' @return NetworkD3 Sankey object
 #' @export
 make_res_from_graph <- function(g,
