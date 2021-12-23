@@ -87,11 +87,11 @@ demos_001 <- prep_data(filename_base = filename_base, vignette = T)
 
 ```
 
-The .vdt data can be standardised in the same format as the output of `prep_data()` using `prep_vdt_dat()`. Note, all later functions rely on the output format of these two functions.
+The .vdt data can be standardised in the same format as the output of `prep_data()` using `prep_vdt_data()`. Note, all later functions rely on the output format of these two functions.
 
 ```{r}
 
-demos_001_vdt <- prep_vdt_dat(
+demos_001_vdt <- prep_vdt_data(
   filename_base = filename_base,
   refer_to_package_data = T)
 

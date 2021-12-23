@@ -364,10 +364,12 @@ vd_structure_match_expected <- function(filename, filetype){
 #' @return tibble. columns c("region", "process", "commodity", "direction",
 #'                         "process_description", "commodity_description")
 #' @example
-#'      vdt_07 <- prep_vdt_dat("demos_007", refer_to_package_data = T)
+#'      vdt_07 <-
+#'       prep_vdt_data("demos_007",
+#'        refer_to_package_data = T)
 #' @export
 
-prep_vdt_dat <- function(filename_base, refer_to_package_data = F){
+prep_vdt_data <- function(filename_base, refer_to_package_data = F){
 
   vde_file <- paste(filename_base, ".VDE", sep = "")
   vdt_file <- paste(filename_base, ".VDT", sep = "")
