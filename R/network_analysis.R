@@ -12,6 +12,7 @@
 #' @param sankey_height Height (in pixels) of sankey.
 #' @param font_size Numeric. Font size for RES labels.
 #' @param use_weights Logical. Whether to represent edge weights in Sankey that contains data for a single period. For data containing more than 1 period, magnitudes are unitary.
+#' @param input_data_type Character. "vd" or "vdt"
 #' @examples
 #'  data(demos_001_sector)
 #'  demos_001_sector %>%
@@ -19,6 +20,7 @@
 #'              node_labels = process_description,
 #'              edge_labels = commodity_description,
 #'              font_size = 11)
+#'
 #' @return NetworkD3 Sankey object
 #' @export
 make_res <- function(dat,
