@@ -27,13 +27,15 @@ make_res <- function(dat,
                        sankey_width = NULL,
                        sankey_height = NULL,
                        font_size = 10,
-                       use_weights = T){
+                       use_weights = T,
+                       input_data_type = "vd"){
   node_labels <- rlang::enquo(node_labels)
   edge_labels <- rlang::enquo(edge_labels)
 
   g <- make_graph_from_veda_df(dat = dat,
                                node_labels = !!node_labels,
-                               edge_labels = !!edge_labels)
+                               edge_labels = !!edge_labels,
+                               input_data_type = input_data_type)
   # extract the vertex data from graph
   vertices <- igraph::as_data_frame(g, what = "vertices") %>%
     #assign_node_num() which is called below requires
