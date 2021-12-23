@@ -149,7 +149,8 @@ if(input_data_type == "vd"){
     dplyr::rename(attribute = direction) %>%
     dplyr::mutate(
       attribute = dplyr::case_when(attribute == "in" ~ "var_fin",
-                                   attribute == "out" ~ "var_fout")
+                                   attribute == "out" ~ "var_fout"),
+      pv = 1 # dummy column
       )
 }else{
   stop("specify input_data_type as either 'vd' or 'vdt'")
