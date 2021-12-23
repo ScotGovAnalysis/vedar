@@ -160,6 +160,24 @@ import_vds <- function(file){
   set
 }
 
+#############################
+#' @export
+import_vdt <- function(file){
+  dat <- utils::read.csv(file,
+                         header = F,
+                         sep = ",",
+                         skip =3)
+  if(ncol(dat)== 4){
+    names(dat) <- c("region",
+                    "process",
+                    "commodity",
+                    "direction")
+  }else{
+    stop("expecting vdt file to contain 4 columns, but contains different number")
+  }
+  dat
+}
+
 
 ###########################################
 standardise_vd_dat <- function(dat){
@@ -331,3 +349,90 @@ vd_structure_match_expected <- function(filename, filetype){
   }
 }
 
+
+####################
+# Import data from vdt file and standardise
+#
+# Import data from vdt data, change to lower case, append the set information.
+# The vdt file also includes rows of commodities that are not part of the RES.
+# These rows are omitted
+#' @param filename_base String. The basename of the veda data excluding the
+#' .vd* suffix
+#' @param refer_to_package_data Logical. Flag whether the function
+#' is calling function from the internal package repository.
+#' This should be set to F unless calling the function with the example data
+#' @return tibble. columns c("region", "process", "commodity", "direction",
+#'                         "process_description", "commodity_description")
+#' @example
+#'      vdt_07 <-
+#'       prep_vdt_data("demos_007",
+#'        refer_to_package_data = T)
+#' @export
+
+prep_vdt_data <- function(filename_base, refer_to_package_data = F){
+
+  vde_file <- paste(filename_base, ".VDE", sep = "")
+  vdt_file <- paste(filename_base, ".VDT", sep = "")
+
+  if(refer_to_package_data == T){
+    vdt_file <- system.file("extdata",
+                           vdt_file,
+                           package = "vedar")
+    vde_file <- system.file("extdata",
+                            vde_file,
+                            package = "vedar")
+
+  }
+
+  vdt <- import_vdt(vdt_file) %>%
+    dplyr::mutate_all(stringr::str_to_lower)
+
+  if(vd_structure_match_expected(vde_file, "vde_file")){
+    descriptions <- import_vde(vde_file) %>%
+      standardise_vd_dat()  %>%
+      unique() %>%
+      dplyr::group_by(variable,  object, region) %>%
+      # in case a variable entry has more than one description
+      dplyr::summarise(description = paste(description)) %>%
+      dplyr::ungroup()
+  }else{
+    stop("vde file structure does not match expected")
+  }
+
+  #append descriptions
+  # to be converted to a function
+  vdt <- vdt %>%
+    dplyr::left_join(descriptions %>%
+                       dplyr::filter(object == "process") %>%
+                       dplyr::select(variable, description) %>%
+                       dplyr::rename(process = variable) %>%
+                       dplyr::filter(is.na(process) == F) %>%
+                       dplyr::distinct(),
+                     by = c("process"
+                            )) %>%
+    dplyr::rename(process_description = description) %>%
+    dplyr::left_join(descriptions %>%
+                       dplyr::filter(object == "commodity") %>%
+                       dplyr::select(variable, description) %>%
+                       dplyr::rename(commodity = variable) %>%
+                       dplyr::filter(is.na(commodity) == F) %>%
+                       dplyr::distinct(),
+                     by = c("commodity"
+                     )) %>%
+    dplyr::rename(commodity_description = description)
+
+
+  # the vdt file includes commodities that are not present in the
+  # user-defined model. Exclude these from the data
+
+  commodities_to_exclude <- c("envi", "nrgi", "demi", "mati",
+                              "envo", "nrgo", "demo", "mato")
+
+  vdt <- vdt %>%
+    dplyr::filter(commodity %in% commodities_to_exclude ==F)
+
+  vdt
+
+
+
+}

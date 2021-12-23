@@ -34,6 +34,15 @@ The Veda graphical user interface provides a means of interrogating the Veda sol
 
 The vignette uses the data that is created from processing demos model that were run in Veda2.0. 
 
+Veda creates several filetypes during a run. The following data files are currently handled in VedaR:
+
+* .vd: The data that appears in the solution
+* .vds: The set information data
+* .vde: The description data for commodities, processes and user constraints
+* .vdt: The technologies and user constraints that exist in the input data, including the direction of commodity flows. This file can be used to create the structure of the reference energy system that is available to the model.
+
+
+
 ```{r, warning = F}
 
 filename_base <- "DemoS_001"
@@ -41,12 +50,13 @@ filename_base <- "DemoS_001"
 vd_filename <- paste(filename_base, ".vd", sep = "")
 vds_filename <- paste(filename_base, ".vds", sep = "")
 vde_filename <- paste(filename_base, ".vde", sep = "")
+vdt_filename <- paste(filename_base,  ".vdt", sep = "")
 ```
 
 
 The vedar package has four functions used to load Veda model run output data into R.
 
-The functions `import_vd(vd_filename)`, `import_vds(vds_filename)` and `import_vde(vde_filename)` files bring the veda run output data, the set information and the object descriptions respectively into the the workspace. In the code below, the `system_file()` is needed in the function arguments to access the vignette data, but this is not required when running in a regular project.
+The functions `import_vd(vd_filename)`, `import_vds(vds_filename)`, `import_vde(vde_filename)`, `import_vdt(vdt_filename)` bring the veda run output data, the set information, the object descriptions and the network structural data respectively into the the workspace. In the code below, the `system_file()` is needed in the function arguments to access the vignette data, but this is not required when running in a regular project.
 
 ```{r, warning = F}
 
@@ -62,9 +72,13 @@ demos_vds <- import_vds(system.file("extdata",
                                   vds_filename,
                                   package = "vedar"))
 
+demos_vdt <- import_vdt(system.file("extdata", 
+                                  vdt_filename,
+                                  package = "vedar"))
+
 ```
 
-Alternatively, the three files can be imported and joined using `prep_data(filename_base)`. The `vignette = T` argument is used in the vignette, but is not needed in a project.
+Alternatively, the three first files can be imported and joined using `prep_data(filename_base)`. The `vignette = T` argument is used in the vignette, but is not needed in a project.
 
 ```{r, warning = F}
 demos_001 <- prep_data(filename_base = filename_base, vignette = T)
@@ -73,6 +87,15 @@ demos_001 <- prep_data(filename_base = filename_base, vignette = T)
 
 ```
 
+The .vdt data can be standardised in the same format as the output of `prep_data()` using `prep_vdt_data()`. Note, all later functions rely on the output format of these two functions.
+
+```{r}
+
+demos_001_vdt <- prep_vdt_data(
+  filename_base = filename_base,
+  refer_to_package_data = T)
+
+```
 
 
 # Assigning sectors 
@@ -165,7 +188,13 @@ demos_001 %>%
 
 Graphs/networks are representations of connected systems. The RES can be represented as a graph with processes as nodes, and commodities as edges.
 
-`make_graph_from_veda_df()` converts the RES to an `igraph` object. When the data is for a single year, the edge weights are the values are determined by the var_fin and var_fout variables of the given process/commodity. Note that since TIMES does not give information of how a given var_fout is split over downstream commodities, an assumption has to be made. Here, the weight is assigned in proportion to the ratio of var_fin variables of downstream commodities linked to the originating process.
+`make_graph_from_veda_df()` converts the RES to an `igraph` object. The function can be applied to either vd, or vdt data using the `input_data_type` argument (the default is "vd"). 
+
+In the case of vd data, when the data is for a single year, the edge weights are the values are determined by the var_fin and var_fout variables of the given process/commodity. Note that since TIMES does not give information of how a given var_fout is split over downstream commodities, an assumption has to be made. Here, the weight is assigned in proportion to the ratio of var_fin variables of downstream commodities linked to the originating process.
+
+In all other cases, the edges weights are set to 1.
+
+Below, we create igraph objects for the demos_001 model from each of the vd, and vdt data
 
 ```{r}
 data(demos_001_sector)
@@ -174,11 +203,16 @@ g <- demos_001_sector %>%
       make_graph_from_veda_df(node_labels = process,
                               edge_labels = commodity
                               )
-
-
+#load data if not previously loaded in vignette
+data(demos_001_vdt)
+g_vdt <- demos_001_vdt %>% 
+  filter(region == "reg1") %>% 
+  make_graph_from_veda_df(input_data_type = "vdt")
 
 
 ```
+
+
 
 Converting the RES to a graph object enables the use of the network analysis functionality of the `igraph` package (https://igraph.org/r/html/latest/). For example, we can return all the edge weights
 
@@ -186,6 +220,7 @@ Converting the RES to a graph object enables the use of the network analysis fun
 ```{r}
 
 E(g)$weight
+E(g_vdt)$weight
 ```
 
 We can compute all simple paths from a given node (or between two nodes if the `to = ` argument is specified)
@@ -355,6 +390,22 @@ res_all_unitary_2020 <- make_res(dat = demos_007 %>%
 res_all_unitary_2020
 ```
 
+
+
+To create the RES for all technologies available to the model (independent of period), the vdt data can be passed to `make_res()` using the `input_data_type` argument. This creates unitary edge weights.
+
+```{r}
+data(demos_007_vdt)
+  make_res(demos_007_vdt %>% 
+             filter(region == "reg1"), 
+          input_data_type = "vdt", 
+          sankey_height = 800, 
+          sankey_width = 1000)
+
+
+
+```
+
 # Combining graph queries to create a RES
 
 The `make_res_from_graph()` function creates a Sankey representation of the the res from an igraph object. Edge thickness represents the graph edge weights.
@@ -394,6 +445,9 @@ res_sub_graph_001 <- make_res_from_graph(sub_g,
 res_sub_graph_001
 
 ```
+
+
+
 # TIMES data queries
 
 The `syscost()` function returns the system cost
