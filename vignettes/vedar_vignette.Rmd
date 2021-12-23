@@ -394,6 +394,7 @@ res_sub_graph_001 <- make_res_from_graph(sub_g,
 res_sub_graph_001
 
 ```
+
 # TIMES data queries
 
 The `syscost()` function returns the system cost

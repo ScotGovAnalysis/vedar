@@ -273,9 +273,19 @@ if(input_data_type == "vd"){
                      sum((dat %>% dplyr::filter(attribute == "var_fout"))$pv)) == F){
           stop("Weight of Edges != var_fout")
         }
+    }else{ #if more than 1 period
+      #as above, but set weight = 1
+      #assign the commodity description of the var_fout commodity to each edge
+      edges <- edges %>%
+        dplyr::left_join(dat %>%
+                           dplyr::filter(attribute == "var_fout") %>%
+                           dplyr::select(commodity, commodity_description) %>%
+                           unique()
+        ) %>%
+        dplyr::mutate(weight = 1)
     }
-}else{  #if more than 1 period or if data is "vdt"
-        #as above, but set weight = 1
+}else{  #if  data is "vdt"
+        # set weight = 1
         #assign the commodity description of the var_fout commodity to each edge
         edges <- edges %>%
           dplyr::left_join(dat %>%
