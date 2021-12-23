@@ -88,3 +88,35 @@
 #'     \item{sector_match}{Logical sector(commodity)==sector(process)}
 #' }
 "demos_001"
+
+#' Tibble produced by prep_vdt_dat("demos_001")
+#'
+#' Tibble of DemoS_001 model vdt data
+#' @format Tibble with 11 rows and 6 columns:
+#' \describe{
+#'     \item{region}{region name as lower case string}
+#'     \item{process}{process name as lower case string}
+#'     \item{commodity}{commodity name as lower case string}
+#'     \item{direction}{"in" or "out"}
+#'      \item{process_description}{Imported process description as
+#'     lower case string}
+#'     \item{commodity_description}{Imported commodity description as
+#'     lower case string}
+#' }
+"demos_001_vdt"
+
+#' Tibble produced by prep_vdt_dat("demos_007")
+#'
+#' Tibble of DemoS_007 model vdt data
+#' @format Tibble with 375 rows and 6 columns:
+#' \describe{
+#'     \item{region}{region name as lower case string}
+#'     \item{process}{process name as lower case string}
+#'     \item{commodity}{commodity name as lower case string}
+#'     \item{direction}{"in" or "out"}
+#'      \item{process_description}{Imported process description as
+#'     lower case string}
+#'     \item{commodity_description}{Imported commodity description as
+#'     lower case string}
+#' }
+"demos_007_vdt"
