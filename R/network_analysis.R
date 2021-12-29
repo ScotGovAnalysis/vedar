@@ -548,8 +548,7 @@ make_sankey <- function(nodes, edges, source, target, value,
   source <- rlang::enquo(source)
   target <- rlang::enquo(target)
   value <- rlang::enquo(value)
-  # THE CALL TO PRINT IS NEEDED TO EVALUATE node_label. NEED ANOTHER SOLUTION
-  t <- print(node_label)
+
 
 
   if(min(c(dplyr::pull(edges, !!source), dplyr::pull(edges, !!target)) != 0)){
@@ -559,6 +558,8 @@ make_sankey <- function(nodes, edges, source, target, value,
       is.numeric(dplyr::pull(edges, !!target))) == F){
     stop("edge source and target must be numeric")
   }
+
+
 
   sn <- networkD3::sankeyNetwork(Links = edges,
                                  Nodes = nodes,
@@ -570,7 +571,7 @@ make_sankey <- function(nodes, edges, source, target, value,
                                  Value = rlang::as_string(
                                    rlang::ensym(value)),
                                  NodeID = rlang::as_string(
-                                   rlang::ensym(node_label)),
+                                   node_label),
                                  fontSize = font_size,
                                  width = sankey_width,
                                  height = sankey_height
