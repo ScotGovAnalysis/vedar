@@ -8,6 +8,7 @@
 #' @param dat Tibble output from prep_data() \%>\% define_sector_from_*().
 #' @param node_labels Column in dat for labelling nodes.
 #' @param edge_labels Column in dat for labelling edges.
+#' @param sankey_colour_column Column in dat for sankey colour grouping.
 #' @param sankey_width Width (in pixels) of sankey.
 #' @param sankey_height Height (in pixels) of sankey.
 #' @param font_size Numeric. Font size for RES labels.
@@ -29,20 +30,23 @@
 #' @return NetworkD3 Sankey object
 #' @export
 make_res <- function(dat,
-                       node_labels = process_description,
-                       edge_labels = commodity_description,
-                       sankey_width = NULL,
-                       sankey_height = NULL,
-                       font_size = 10,
-                       use_weights = T,
-                       input_data_type = "vd"){
+                     node_labels = process_description,
+                     edge_labels = commodity_description,
+                     sankey_colour_column = NULL,
+                     sankey_width = NULL,
+                     sankey_height = NULL,
+                     font_size = 10,
+                     use_weights = T,
+                     input_data_type = "vd"){
   node_labels <- rlang::enquo(node_labels)
   edge_labels <- rlang::enquo(edge_labels)
+  sankey_colour_column <- rlang::enquo(sankey_colour_column)
 
   g <- make_graph_from_veda_df(dat = dat,
                                node_labels = !!node_labels,
                                edge_labels = !!edge_labels,
                                input_data_type = input_data_type)
+
   # extract the vertex data from graph
   vertices <- igraph::as_data_frame(g, what = "vertices") %>%
     #assign_node_num() which is called below requires
@@ -66,15 +70,43 @@ make_res <- function(dat,
     edges$weight = 1
   }
 
+
+  if(!rlang::quo_is_null(sankey_colour_column)){
+    #if a colour grouping column is specified,
+    #take this from dat to rejoin to edges
+    colour_dat <- dat %>%
+      dplyr::select(!!node_labels,
+             !!sankey_colour_column) %>%
+      dplyr::distinct() %>%
+      dplyr::rename(colour_group = !!sankey_colour_column,
+                    process = !!node_labels)
+    }else{
+      #else, create a random grouping variable of 20 levels for the 20 levels of  the networkD3 palette
+        colour_dat <- tibble::tibble(
+          process = unique(
+            dplyr::pull(dat, !!node_labels)
+          )
+        ) %>%
+          dplyr::mutate(colour_group =
+                   sample(LETTERS[1:20], n(), replace = TRUE))
+    }
+
+#append colour group to vertices by the "process" column
+  vertices <- vertices %>%
+      dplyr::left_join(colour_dat,
+                       by = "process")
+
+
   sn <- make_sankey(vertices, edges,
                     source = from,
                     target = to,
                     value = weight,
-                    node_label = names(vertices %>%
-                                         dplyr::select(-node_num)),
+                    node_label = process, # the process column is a fixed internal name
                     edge_label = edge_labels,
                     sankey_width = sankey_width,
                     sankey_height = sankey_height,
+                    sankey_colour_column =
+                      colour_group,
                     font_size = font_size)
 
   sn
@@ -532,6 +564,7 @@ total_target_var_fin_by_source_function <- function(dat,  source_val, commodity_
 #' @param source, target, value Column names in edges tibble.
 #' @param edge_label, node_label Enquoted columns in edges tibble. Used for flow
 #' tooltip
+#' @param sankey_colour_column Column in nodes for colour grouping
 #' @param sankey_width Width (in pixels) of sankey.
 #' @param sankey_height Height (in pixels) of sankey.
 #' @param font_size Numeric.
@@ -539,6 +572,7 @@ total_target_var_fin_by_source_function <- function(dat,  source_val, commodity_
 #' @keywords internal
 make_sankey <- function(nodes, edges, source, target, value,
                         node_label = process_description,
+                        sankey_colour_column = NULL,
                         edge_label = NULL,
                         sankey_width = NULL,
                         sankey_height = NULL,
@@ -548,6 +582,8 @@ make_sankey <- function(nodes, edges, source, target, value,
   source <- rlang::enquo(source)
   target <- rlang::enquo(target)
   value <- rlang::enquo(value)
+  node_label <- rlang::enquo(node_label)
+  sankey_colour_column <- rlang::enquo(sankey_colour_column)
 
 
 
@@ -560,7 +596,6 @@ make_sankey <- function(nodes, edges, source, target, value,
   }
 
 
-
   sn <- networkD3::sankeyNetwork(Links = edges,
                                  Nodes = nodes,
                                  # arguments to sankeyNetwork strings
@@ -571,7 +606,9 @@ make_sankey <- function(nodes, edges, source, target, value,
                                  Value = rlang::as_string(
                                    rlang::ensym(value)),
                                  NodeID = rlang::as_string(
-                                   node_label),
+                                   rlang::ensym(node_label)),
+                                 NodeGroup = rlang::as_string(
+                                   rlang::ensym(sankey_colour_column)),
                                  fontSize = font_size,
                                  width = sankey_width,
                                  height = sankey_height
