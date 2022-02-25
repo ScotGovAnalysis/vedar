@@ -96,6 +96,9 @@ make_res <- function(dat,
       dplyr::left_join(colour_dat,
                        by = "process")
 
+browser()
+  colour_scale <- make_colour_scale(colour_group = unique(colour_dat$colour_group),
+                                    colour = c("#B2DF8A", "#1F78B4", "#A6CEE3"))
 
   sn <- make_sankey(vertices, edges,
                     source = from,
@@ -107,6 +110,7 @@ make_res <- function(dat,
                     sankey_height = sankey_height,
                     sankey_colour_column =
                       colour_group,
+                    colour_scale = colour_scale,
                     font_size = font_size)
 
   sn
@@ -574,6 +578,7 @@ make_sankey <- function(nodes, edges, source, target, value,
                         node_label = process_description,
                         sankey_colour_column = NULL,
                         edge_label = NULL,
+                        colour_scale = NULL,
                         sankey_width = NULL,
                         sankey_height = NULL,
                         font_size = 12){
@@ -609,6 +614,8 @@ make_sankey <- function(nodes, edges, source, target, value,
                                    rlang::ensym(node_label)),
                                  NodeGroup = rlang::as_string(
                                    rlang::ensym(sankey_colour_column)),
+                                 colourScale = networkD3::JS(
+                                   colour_scale),
                                  fontSize = font_size,
                                  width = sankey_width,
                                  height = sankey_height
@@ -727,4 +734,32 @@ make_res_from_graph <- function(g,
                     font_size = font_size)
 
   sn
+}
+
+##################################
+#' Make JS ordinal colour scale for grouping data
+#'
+#' @param colour_group character vector
+#' @param colour character vector
+#' @return JS object of group and colour domain
+#' @keywords internal
+#'
+make_colour_scale <- function(colour_group, colour){
+  # collapse the vectors to a string
+  #https://stackoverflow.com/questions/47639789/r-assign-cat-output-to-variable
+  group_string <- capture.output(cat(paste(shQuote(colour_group, type="cmd"), collapse=", "))) %>%
+    stringr::str_replace_all(pattern = '\"', replacement = "'")
+
+  colour_string <- capture.output(cat(paste(shQuote(colour, type="cmd"), collapse=", "))) %>%
+    stringr::str_replace_all(pattern = '\"', replacement = "'")
+
+
+  colour_scale_string <- paste('d3.scaleOrdinal().domain([',
+                               group_string,
+                               ']).range([',
+                               colour_string,
+                               '])',
+                               sep='')
+  colour_scale_string
+
 }
