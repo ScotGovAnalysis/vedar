@@ -450,9 +450,14 @@ assign_node_num <- function(dat, nodes, col_to_assign_num){
 #' @return Tibble with source-target pairs for each flow.
 #' @keywords internal
 make_edges <- function(dat, node_col, flow_col){
+  #create fns to pass to values_fn pivot_wider
+  #https://stackoverflow.com/questions/71423206/using-pivot-wider-in-a-function-with-named-variable-from-function-argument
+
+  fns <- stats::setNames(list(list), deparse(substitute(node_col)))
+
   node_col <- rlang::enquo(node_col)
   flow_col <- rlang::enquo(flow_col)
-#browser()
+
   node_col_numeric <- is.numeric(dplyr::pull(dat, !!node_col))
 
 out <- dat %>%
@@ -461,7 +466,7 @@ out <- dat %>%
                        names_from = attribute,
                        #specify that non-unique values are collapsed to a list
                        #for all variables
-                       values_fn = list(list)) %>%
+                       values_fn = fns) %>%
     dplyr::group_by(!!flow_col) %>%
     dplyr::summarise(edges = purrr::map(.x = var_fout,
                          .y = var_fin,
