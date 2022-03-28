@@ -1,8 +1,18 @@
 
-# Import and prep vd files
+#' Import output from veda runs into R.
+#'
+#' Imports and combines vd, vde and vds files to create a
+#'  single tibble with standard formatting
 #
-# ccp <- prep_data(ccpu_filename_base) %>%
-#     mutate(case = "ccpu")
+#' @param filename_base a character string of the veda files without the .vd* suffix
+#' @param vignette logical. Set to TRUE if running from within the vignette or development environmnet.
+#'
+#' @examples
+#'   path_to_data <- paste0(find.package("vedar"),
+#'                          "/extdata/")
+#'   filename_base <- paste0(path_to_data, "DemoS_001")
+#'
+#'   dat <- prep_data(filename_base)
 #
 ####################################################
 #' @export
